@@ -52,6 +52,7 @@ type RedisClusterSpec struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RedisCluster is the Schema for the redisclusters API
@@ -64,7 +65,8 @@ type RedisCluster struct {
 	Status RedisClusterStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RedisClusterList contains a list of RedisCluster
 type RedisClusterList struct {
@@ -106,5 +108,3 @@ type RedisStorage struct {
 	EmptyDir              *corev1.EmptyDirVolumeSource  `json:"emptyDir,omitempty"`
 	PersistentVolumeClaim *corev1.PersistentVolumeClaim `json:"persistentVolumeClaim,omitempty"`
 }
-
-

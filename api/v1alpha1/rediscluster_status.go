@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sort"
 	"time"
 
@@ -17,8 +18,8 @@ type Condition struct {
 	// Status of the condition, one of True, False, Unknown.
 	Status corev1.ConditionStatus `json:"status"`
 	// The last time this condition was updated.
-	LastUpdateTime string    `json:"lastUpdateTime,omitempty"`
-	LastUpdateAt   time.Time `json:"-"`
+	LastUpdateTime string      `json:"lastUpdateTime,omitempty"`
+	LastUpdateAt   metav1.Time `json:"-"`
 	// Last time the condition transitioned from one status to another.
 	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
 	// The reason for the condition's last transition.
@@ -46,8 +47,6 @@ const (
 // RedisClusterStatus defines the observed state of RedisCluster
 // +k8s:openapi-gen=true
 type RedisClusterStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	Conditions []Condition `json:"conditions,omitempty"`
 	MasterIP   string      `json:"masterIP,omitempty"`
@@ -56,7 +55,7 @@ type RedisClusterStatus struct {
 
 func (cs *RedisClusterStatus) DescConditionsByTime() {
 	sort.Slice(cs.Conditions, func(i, j int) bool {
-		return cs.Conditions[i].LastUpdateAt.After(cs.Conditions[j].LastUpdateAt)
+		return cs.Conditions[i].LastUpdateAt.Time.After(cs.Conditions[j].LastUpdateAt.Time)
 	})
 }
 
@@ -112,7 +111,7 @@ func (cs *RedisClusterStatus) setClusterCondition(c Condition) {
 		cp.Status == c.Status && cp.Reason == c.Reason && cp.Message == c.Message {
 		now := time.Now()
 		nowString := now.Format(time.RFC3339)
-		cs.Conditions[pos].LastUpdateAt = now
+		cs.Conditions[pos].LastUpdateAt = metav1.Now()
 		cs.Conditions[pos].LastUpdateTime = nowString
 		return
 	}
@@ -140,7 +139,7 @@ func newClusterCondition(condType ConditionType, status corev1.ConditionStatus, 
 		Type:               condType,
 		Status:             status,
 		LastUpdateTime:     nowString,
-		LastUpdateAt:       now,
+		LastUpdateAt:       metav1.Now(),
 		LastTransitionTime: nowString,
 		Reason:             reason,
 		Message:            message,

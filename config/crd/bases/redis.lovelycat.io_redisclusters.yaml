@@ -2012,10 +2012,7 @@ spec:
             description: RedisClusterStatus defines the observed state of RedisCluster
             properties:
               conditions:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "operator-sdk generate k8s" to regenerate
-                  code after modifying this file Add custom validation using kubebuilder
-                  tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html'
+                description: 'Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html'
                 items:
                   description: Condition saves the state information of the redis
                     cluster
