@@ -10,7 +10,7 @@ import (
 
 	rediscli "github.com/go-redis/redis"
 
-	"github.com/von1994/cndb-redis/util"
+	"github.com/von1994/cndb-redis/pkg/util"
 )
 
 // Client defines the functions necessary to connect to redis and sentinel to get or set what we need

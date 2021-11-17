@@ -13,7 +13,7 @@ package k8s_test
 //	kubetesting "k8s.io/client-go/testing"
 //	"sigs.k8s.io/controller-runtime/pkg/client/config"
 //
-//	"github.com/von1994/cndb-redis/client/k8s"
+//	"github.com/von1994/cndb-redis/pkg/client/k8s"
 //	"github.com/von1994/cndb-redis/test/client"
 //)
 //

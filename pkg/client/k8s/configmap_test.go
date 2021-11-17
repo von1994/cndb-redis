@@ -14,7 +14,7 @@ package k8s_test
 //	"sigs.k8s.io/controller-runtime/pkg/client/config"
 //	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 //
-//	"github.com/von1994/cndb-redis/client/k8s"
+//	"github.com/von1994/cndb-redis/pkg/client/k8s"
 //	"github.com/von1994/cndb-redis/test/client"
 //)
 //

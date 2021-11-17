@@ -11,9 +11,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
-	"github.com/von1994/cndb-redis/client/k8s"
-	"github.com/von1994/cndb-redis/client/redis"
-	"github.com/von1994/cndb-redis/util"
+	"github.com/von1994/cndb-redis/pkg/client/k8s"
+	"github.com/von1994/cndb-redis/pkg/client/redis"
+	"github.com/von1994/cndb-redis/pkg/util"
 )
 
 // RedisClusterCheck defines the intercace able to check the correct status of a redis cluster

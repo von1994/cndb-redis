@@ -9,8 +9,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
-	"github.com/von1994/cndb-redis/client/k8s"
-	"github.com/von1994/cndb-redis/util"
+	"github.com/von1994/cndb-redis/pkg/client/k8s"
+	"github.com/von1994/cndb-redis/pkg/util"
 )
 
 // RedisClusterClient has the minimumm methods that a Redis cluster controller needs to satisfy

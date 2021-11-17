@@ -7,11 +7,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
-	"github.com/von1994/cndb-redis/client/k8s"
 	"github.com/von1994/cndb-redis/controllers/rediscluster/clustercache"
 	"github.com/von1994/cndb-redis/controllers/rediscluster/service"
-	"github.com/von1994/cndb-redis/metrics"
-	"github.com/von1994/cndb-redis/util"
+	"github.com/von1994/cndb-redis/pkg/client/k8s"
+	"github.com/von1994/cndb-redis/pkg/metrics"
+	"github.com/von1994/cndb-redis/pkg/util"
 )
 
 var (

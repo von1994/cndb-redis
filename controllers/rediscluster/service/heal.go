@@ -9,9 +9,9 @@ import (
 	"github.com/go-logr/logr"
 
 	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
-	"github.com/von1994/cndb-redis/client/k8s"
-	"github.com/von1994/cndb-redis/client/redis"
-	"github.com/von1994/cndb-redis/util"
+	"github.com/von1994/cndb-redis/pkg/client/k8s"
+	"github.com/von1994/cndb-redis/pkg/client/redis"
+	"github.com/von1994/cndb-redis/pkg/util"
 )
 
 // RedisClusterHeal defines the intercace able to fix the problems on the redis clusters
