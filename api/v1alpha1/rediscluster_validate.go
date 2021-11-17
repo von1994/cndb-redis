@@ -56,7 +56,6 @@ func (r *RedisCluster) Validate() error {
 		r.Spec.Config = make(map[string]string)
 	}
 
-	// https://github.com/von1994/cndb-redis/issues/6
 	r.Spec.Config["slave-priority"] = defaultSlavePriority
 
 	if !r.Spec.DisablePersistence {
