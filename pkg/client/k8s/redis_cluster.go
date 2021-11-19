@@ -5,13 +5,13 @@ import (
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 )
 
 // Cluster the client that knows how to interact with kubernetes to manage RedisCluster
 type Cluster interface {
-	// UpdateCluster update the RedisCluster
-	UpdateCluster(namespace string, cluster *redisv1beta1.RedisCluster) error
+	// UpdateClusterStatus update the RedisCluster
+	UpdateClusterStatus(namespace string, cluster *redisv1alpha1.RedisCluster) error
 }
 
 // ClusterOption is the RedisCluster client that using API calls to kubernetes.
@@ -29,8 +29,8 @@ func NewCluster(kubeClient client.Client, logger logr.Logger) Cluster {
 	}
 }
 
-// UpdateCluster implement the  Cluster.Interface
-func (c *ClusterOption) UpdateCluster(namespace string, cluster *redisv1beta1.RedisCluster) error {
+// UpdateClusterStatus implement the  Cluster.Interface
+func (c *ClusterOption) UpdateClusterStatus(namespace string, cluster *redisv1alpha1.RedisCluster) error {
 	cluster.Status.DescConditionsByTime()
 	err := c.client.Status().Update(context.TODO(), cluster)
 	if err != nil {

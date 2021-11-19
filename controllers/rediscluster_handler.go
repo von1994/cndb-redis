@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -35,16 +34,25 @@ type RedisClusterHandler struct {
 // Do will ensure the RedisCluster is in the expected state and update the RedisCluster status.
 func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).Info("handler doing")
-	if err := rc.Validate(); err != nil {
+	// validate may change the spec.
+	if modified, err := rc.Validate(); err != nil {
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
+	} else if modified {
+		return immediatelyNeedRequeueErr
 	}
+
+	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).Info("validated and no updates")
 
 	// diff new and new RedisCluster, then update status
 	meta := r.metaCache.Cache(rc)
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).V(3).
 		Info(fmt.Sprintf("meta status:%s, mes:%s, state:%s", meta.Status, meta.Message, meta.State))
-	r.updateStatus(meta)
+	if err := r.updateStatus(meta); err != nil {
+		r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).V(5).
+			Info(fmt.Sprintf("update status failed due to %s", err.Error()))
+		return err
+	}
 
 	// Create owner refs so the objects manager by this handler have ownership to the
 	// received rc.
@@ -58,7 +66,9 @@ func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 	if err := r.Ensure(meta.Obj, labels, oRefs); err != nil {
 		r.eventsCli.FailedCluster(rc, err.Error())
 		rc.Status.SetFailedCondition(err.Error())
-		r.k8sServices.UpdateCluster(rc.Namespace, rc)
+		if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+			return updateFailedErr
+		}
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
 	}
@@ -70,7 +80,9 @@ func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 		if err.Error() != needRequeueMsg {
 			r.eventsCli.FailedCluster(rc, err.Error())
 			rc.Status.SetFailedCondition(err.Error())
-			r.k8sServices.UpdateCluster(rc.Namespace, rc)
+			if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+				return updateFailedErr
+			}
 			return err
 		}
 		// if user delete statefulset or deployment, set status
@@ -78,7 +90,9 @@ func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 		if len(status) > 0 && status[0].Type == redisv1alpha1.ClusterConditionHealthy {
 			r.eventsCli.CreateCluster(rc)
 			rc.Status.SetCreateCondition("redis server or sentinel server be removed by user, restart")
-			r.k8sServices.UpdateCluster(rc.Namespace, rc)
+			if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+				return updateFailedErr
+			}
 		}
 		return err
 	}
@@ -86,13 +100,15 @@ func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).V(2).Info("SetReadyCondition...")
 	r.eventsCli.HealthCluster(rc)
 	rc.Status.SetReadyCondition("Cluster ok")
-	r.k8sServices.UpdateCluster(rc.Namespace, rc)
+	if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+		return updateFailedErr
+	}
 	metrics.ClusterMetrics.SetClusterOK(rc.Namespace, rc.Name)
 
 	return nil
 }
 
-func (r *RedisClusterHandler) updateStatus(meta *clustercache.Meta) {
+func (r *RedisClusterHandler) updateStatus(meta *clustercache.Meta) (err error) {
 	rc := meta.Obj
 
 	if meta.State != clustercache.Check {
@@ -109,14 +125,15 @@ func (r *RedisClusterHandler) updateStatus(meta *clustercache.Meta) {
 			r.eventsCli.SlaveRemove(rc, meta.Message)
 			rc.Status.SetScalingDownCondition(meta.Message)
 		case redisv1alpha1.ClusterConditionUpgrading:
-			r.eventsCli.UpdateCluster(rc, meta.Message)
+			r.eventsCli.UpdateClusterStatus(rc, meta.Message)
 			rc.Status.SetUpgradingCondition(meta.Message)
 		default:
-			r.eventsCli.UpdateCluster(rc, meta.Message)
+			r.eventsCli.UpdateClusterStatus(rc, meta.Message)
 			rc.Status.SetUpdatingCondition(meta.Message)
 		}
-		r.k8sServices.UpdateCluster(rc.Namespace, rc)
+		return r.k8sServices.UpdateClusterStatus(rc.Namespace, rc)
 	}
+	return nil
 }
 
 // getLabels merges all the labels (dynamic and operator static ones).

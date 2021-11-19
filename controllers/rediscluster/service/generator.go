@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 	"github.com/von1994/cndb-redis/pkg/util"
 )
 
@@ -22,7 +22,7 @@ const (
 	graceTime = 30
 )
 
-func generateSentinelService(rc *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
+func generateSentinelService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
 	name := util.GetSentinelName(rc)
 	namespace := rc.Namespace
 
@@ -50,7 +50,7 @@ func generateSentinelService(rc *redisv1beta1.RedisCluster, labels map[string]st
 	}
 }
 
-func generateRedisService(rc *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
+func generateRedisService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
 	name := util.GetRedisName(rc)
 	namespace := rc.Namespace
 
@@ -79,7 +79,7 @@ func generateRedisService(rc *redisv1beta1.RedisCluster, labels map[string]strin
 	}
 }
 
-func generateSentinelConfigMap(rc *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
+func generateSentinelConfigMap(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
 	name := util.GetSentinelName(rc)
 	namespace := rc.Namespace
 
@@ -106,7 +106,7 @@ sentinel parallel-syncs mymaster 2`
 	}
 }
 
-func generateRedisConfigMap(rc *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
+func generateRedisConfigMap(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
 	name := util.GetRedisName(rc)
 	namespace := rc.Namespace
 
@@ -132,7 +132,7 @@ save 300 10`
 	}
 }
 
-func generateRedisShutdownConfigMap(rc *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
+func generateRedisShutdownConfigMap(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
 	name := util.GetRedisShutdownConfigMapName(rc)
 	namespace := rc.Namespace
 
@@ -170,7 +170,7 @@ fi`, envSentinelHost, envSentinelPort, envSentinelHost, envSentinelPort)
 	}
 }
 
-func generateSentinelReadinessProbeConfigMap(rc *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
+func generateSentinelReadinessProbeConfigMap(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
 	name := util.GetSentinelReadinessCm(rc)
 	namespace := rc.Namespace
 
@@ -201,7 +201,7 @@ fi
 	}
 }
 
-func generateRedisStatefulSet(rc *redisv1beta1.RedisCluster, labels map[string]string,
+func generateRedisStatefulSet(rc *redisv1alpha1.RedisCluster, labels map[string]string,
 	ownerRefs []metav1.OwnerReference) *appsv1.StatefulSet {
 	name := util.GetRedisName(rc)
 	namespace := rc.Namespace
@@ -320,7 +320,7 @@ func generateRedisStatefulSet(rc *redisv1beta1.RedisCluster, labels map[string]s
 	return ss
 }
 
-func generateSentinelStatefulSet(rc *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *appsv1.StatefulSet {
+func generateSentinelStatefulSet(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *appsv1.StatefulSet {
 	name := util.GetSentinelName(rc)
 	configMapName := util.GetSentinelName(rc)
 	namespace := rc.Namespace
@@ -500,7 +500,7 @@ func generateResourceList(cpu string, memory string) corev1.ResourceList {
 	return resources
 }
 
-func createRedisExporterContainer(rc *redisv1beta1.RedisCluster) corev1.Container {
+func createRedisExporterContainer(rc *redisv1alpha1.RedisCluster) corev1.Container {
 	container := corev1.Container{
 		Name:            exporterContainerName,
 		Image:           rc.Spec.Exporter.Image,
@@ -581,11 +581,11 @@ func getSecurityContext(secctx *corev1.PodSecurityContext) *corev1.PodSecurityCo
 	return nil
 }
 
-func getQuorum(rc *redisv1beta1.RedisCluster) int32 {
+func getQuorum(rc *redisv1alpha1.RedisCluster) int32 {
 	return rc.Spec.Sentinel.Replicas/2 + 1
 }
 
-func getRedisVolumeMounts(rc *redisv1beta1.RedisCluster) []corev1.VolumeMount {
+func getRedisVolumeMounts(rc *redisv1alpha1.RedisCluster) []corev1.VolumeMount {
 	volumeMounts := []corev1.VolumeMount{
 		//{
 		//	Name:      redisConfigurationVolumeName,
@@ -604,7 +604,7 @@ func getRedisVolumeMounts(rc *redisv1beta1.RedisCluster) []corev1.VolumeMount {
 	return volumeMounts
 }
 
-func getRedisVolumes(rc *redisv1beta1.RedisCluster) []corev1.Volume {
+func getRedisVolumes(rc *redisv1alpha1.RedisCluster) []corev1.Volume {
 	shutdownConfigMapName := util.GetRedisShutdownConfigMapName(rc)
 
 	executeMode := int32(0744)
@@ -630,7 +630,7 @@ func getRedisVolumes(rc *redisv1beta1.RedisCluster) []corev1.Volume {
 	return volumes
 }
 
-func getRedisDataVolume(rc *redisv1beta1.RedisCluster) *corev1.Volume {
+func getRedisDataVolume(rc *redisv1alpha1.RedisCluster) *corev1.Volume {
 	// This will find the volumed desired by the user. If no volume defined
 	// an EmptyDir will be used by default
 	switch {
@@ -653,7 +653,7 @@ func getRedisDataVolume(rc *redisv1beta1.RedisCluster) *corev1.Volume {
 	}
 }
 
-func getRedisDataVolumeName(rc *redisv1beta1.RedisCluster) string {
+func getRedisDataVolumeName(rc *redisv1alpha1.RedisCluster) string {
 	switch {
 	case rc.Spec.Storage.PersistentVolumeClaim != nil:
 		return rc.Spec.Storage.PersistentVolumeClaim.Name
@@ -664,7 +664,7 @@ func getRedisDataVolumeName(rc *redisv1beta1.RedisCluster) string {
 	}
 }
 
-func getRedisCommand(rc *redisv1beta1.RedisCluster) []string {
+func getRedisCommand(rc *redisv1alpha1.RedisCluster) []string {
 	if len(rc.Spec.Command) > 0 {
 		return rc.Spec.Command
 	}
@@ -685,7 +685,7 @@ func getRedisCommand(rc *redisv1beta1.RedisCluster) []string {
 	return cmds
 }
 
-func getSentinelCommand(rc *redisv1beta1.RedisCluster) []string {
+func getSentinelCommand(rc *redisv1alpha1.RedisCluster) []string {
 	if len(rc.Spec.Sentinel.Command) > 0 {
 		return rc.Spec.Sentinel.Command
 	}
@@ -720,7 +720,7 @@ func getAffinity(affinity *corev1.Affinity, labels map[string]string) *corev1.Af
 }
 
 // newHeadLessSvcForCR creates a new headless service for the given Cluster.
-func newHeadLessSvcForCR(cluster *redisv1beta1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
+func newHeadLessSvcForCR(cluster *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
 	sentinelPort := corev1.ServicePort{Name: "sentinel", Port: 26379}
 	labels = util.MergeLabels(labels, generateSelectorLabels(util.SentinelRoleName, cluster.Name))
 	svc := &corev1.Service{

@@ -53,7 +53,7 @@ var (
 
 func init() {
 	controllerFlagSet = pflag.NewFlagSet("controller", pflag.ExitOnError)
-	controllerFlagSet.IntVar(&maxConcurrentReconciles, "ctr-maxconcurrent", 4, "the maximum number of concurrent Reconciles which can be run. Defaults to 4.")
+	controllerFlagSet.IntVar(&maxConcurrentReconciles, "ctr-maxconcurrent", 1, "the maximum number of concurrent Reconciles which can be run. Defaults to 4.")
 	controllerFlagSet.IntVar(&reconcileTime, "ctr-reconciletime", 60, "")
 	metrics.InitPrometheusMetrics("default", prometheus.NewRegistry())
 }
@@ -96,6 +96,12 @@ func NewReconciler(mgr manager.Manager) *RedisClusterReconciler {
 //+kubebuilder:rbac:groups=redis.lovelycat.io,resources=redisclusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=redis.lovelycat.io,resources=redisclusters/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=redis.lovelycat.io,resources=redisclusters/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -130,14 +136,18 @@ func (r *RedisClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, err
 	}
 
-	reqLogger.V(5).Info(fmt.Sprintf("RedisCluster Spec:\n %+v", instance))
+	reqLogger.V(5).Info(fmt.Sprintf("RedisCluster Spec:\n %+v", instance.Spec))
 
 	if err = r.handler.Do(instance); err != nil {
-		if err.Error() == needRequeueMsg {
+		switch err.Error() {
+		case needRequeueImmediatelyMsg:
+			return reconcile.Result{Requeue: true}, nil
+		case needRequeueMsg:
 			return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
+		default:
+			reqLogger.Error(err, "Reconcile handler")
+			return reconcile.Result{}, err
 		}
-		reqLogger.Error(err, "Reconcile handler")
-		return reconcile.Result{}, err
 	}
 
 	if err = r.handler.rcChecker.CheckSentinelReadyReplicas(instance); err != nil {

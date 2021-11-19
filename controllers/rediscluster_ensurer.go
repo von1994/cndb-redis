@@ -3,11 +3,11 @@ package controllers
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 )
 
 // Ensure the RedisCluster's components are correct.
-func (r *RedisClusterHandler) Ensure(rc *redisv1beta1.RedisCluster, labels map[string]string, or []metav1.OwnerReference) error {
+func (r *RedisClusterHandler) Ensure(rc *redisv1alpha1.RedisCluster, labels map[string]string, or []metav1.OwnerReference) error {
 	if err := r.rcService.EnsureRedisService(rc, labels, or); err != nil {
 		return err
 	}

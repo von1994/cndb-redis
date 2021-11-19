@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"time"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 	"github.com/von1994/cndb-redis/controllers/rediscluster/clustercache"
 	"github.com/von1994/cndb-redis/pkg/util"
 )
 
 const (
-	checkInterval  = 5 * time.Second
-	timeOut        = 30 * time.Second
-	needRequeueMsg = "need requeue"
+	checkInterval             = 5 * time.Second
+	timeOut                   = 30 * time.Second
+	needRequeueMsg            = "need requeue"
+	needRequeueImmediatelyMsg = "need requeue immediately"
 )
 
 var (
-	needRequeueErr = errors.New(needRequeueMsg)
+	needRequeueErr            = errors.New(needRequeueMsg)
+	immediatelyNeedRequeueErr = errors.New(needRequeueImmediatelyMsg)
 )
 
 // CheckAndHeal Check the health of the cluster and heal,
@@ -33,7 +35,7 @@ var (
 func (r *RedisClusterHandler) CheckAndHeal(meta *clustercache.Meta) error {
 	if err := r.rcChecker.CheckRedisNumber(meta.Obj); err != nil {
 		r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).V(2).Info("number of redis mismatch, this could be for a change on the statefulset")
-		r.eventsCli.UpdateCluster(meta.Obj, "wait for all redis server start")
+		r.eventsCli.UpdateClusterStatus(meta.Obj, "wait for all redis server start")
 		return needRequeueErr
 	}
 	if err := r.rcChecker.CheckSentinelNumber(meta.Obj); err != nil {
@@ -47,7 +49,7 @@ func (r *RedisClusterHandler) CheckAndHeal(meta *clustercache.Meta) error {
 	}
 	switch nMasters {
 	case 0:
-		r.eventsCli.UpdateCluster(meta.Obj, "set master")
+		r.eventsCli.UpdateClusterStatus(meta.Obj, "set master")
 		r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).V(2).Info("no master find, fixing...")
 		redisesIP, err := r.rcChecker.GetRedisesIPs(meta.Obj, meta.Auth)
 		if err != nil {
@@ -138,7 +140,7 @@ func (r *RedisClusterHandler) setRedisConfig(meta *clustercache.Meta) error {
 	for _, rip := range redises {
 		if err := r.rcChecker.CheckRedisConfig(meta.Obj, rip, meta.Auth); err != nil {
 			r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).Info(err.Error())
-			r.eventsCli.UpdateCluster(meta.Obj, "set custom config for redis server")
+			r.eventsCli.UpdateClusterStatus(meta.Obj, "set custom config for redis server")
 			if err := r.rcHealer.SetRedisCustomConfig(rip, meta.Obj, meta.Auth); err != nil {
 				return err
 			}
@@ -161,7 +163,7 @@ func (r *RedisClusterHandler) setSentinelConfig(meta *clustercache.Meta, sentine
 	return nil
 }
 
-func (r *RedisClusterHandler) waitRestoreSentinelSlavesOK(sentinel string, rc *redisv1beta1.RedisCluster, auth *util.AuthConfig) error {
+func (r *RedisClusterHandler) waitRestoreSentinelSlavesOK(sentinel string, rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error {
 	timer := time.NewTimer(timeOut)
 	defer timer.Stop()
 	for {

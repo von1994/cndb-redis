@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 	"github.com/von1994/cndb-redis/pkg/client/k8s"
 	"github.com/von1994/cndb-redis/pkg/client/redis"
 	"github.com/von1994/cndb-redis/pkg/util"
@@ -17,12 +17,12 @@ import (
 // RedisClusterHeal defines the intercace able to fix the problems on the redis clusters
 type RedisClusterHeal interface {
 	MakeMaster(ip string, auth *util.AuthConfig) error
-	SetOldestAsMaster(redisCluster *redisv1beta1.RedisCluster, auth *util.AuthConfig) error
-	SetMasterOnAll(masterIP string, redisCluster *redisv1beta1.RedisCluster, auth *util.AuthConfig) error
-	NewSentinelMonitor(ip string, monitor string, redisCluster *redisv1beta1.RedisCluster, auth *util.AuthConfig) error
+	SetOldestAsMaster(redisCluster *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error
+	SetMasterOnAll(masterIP string, redisCluster *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error
+	NewSentinelMonitor(ip string, monitor string, redisCluster *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error
 	RestoreSentinel(ip string, auth *util.AuthConfig) error
-	SetSentinelCustomConfig(ip string, redisCluster *redisv1beta1.RedisCluster, auth *util.AuthConfig) error
-	SetRedisCustomConfig(ip string, redisCluster *redisv1beta1.RedisCluster, auth *util.AuthConfig) error
+	SetSentinelCustomConfig(ip string, redisCluster *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error
+	SetRedisCustomConfig(ip string, redisCluster *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error
 }
 
 // RedisClusterHealer is our implementation of RedisClusterCheck intercace
@@ -46,7 +46,7 @@ func (r *RedisClusterHealer) MakeMaster(ip string, auth *util.AuthConfig) error 
 }
 
 // SetOldestAsMaster puts all redis to the same master, choosen by order of appearance
-func (r *RedisClusterHealer) SetOldestAsMaster(rc *redisv1beta1.RedisCluster, auth *util.AuthConfig) error {
+func (r *RedisClusterHealer) SetOldestAsMaster(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error {
 	ssp, err := r.k8sService.GetStatefulSetPods(rc.Namespace, util.GetRedisName(rc))
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func (r *RedisClusterHealer) SetOldestAsMaster(rc *redisv1beta1.RedisCluster, au
 }
 
 // SetMasterOnAll puts all redis nodes as a slave of a given master
-func (r *RedisClusterHealer) SetMasterOnAll(masterIP string, rc *redisv1beta1.RedisCluster, auth *util.AuthConfig) error {
+func (r *RedisClusterHealer) SetMasterOnAll(masterIP string, rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error {
 	ssp, err := r.k8sService.GetStatefulSetPods(rc.Namespace, util.GetRedisName(rc))
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (r *RedisClusterHealer) SetMasterOnAll(masterIP string, rc *redisv1beta1.Re
 }
 
 // NewSentinelMonitor changes the master that Sentinel has to monitor
-func (r *RedisClusterHealer) NewSentinelMonitor(ip string, monitor string, rc *redisv1beta1.RedisCluster, auth *util.AuthConfig) error {
+func (r *RedisClusterHealer) NewSentinelMonitor(ip string, monitor string, rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error {
 	r.logger.V(2).Info("sentinel is not monitoring the correct master, changing...")
 	quorum := strconv.Itoa(int(getQuorum(rc)))
 	return r.redisClient.MonitorRedis(ip, monitor, quorum, auth)
@@ -114,7 +114,7 @@ func (r *RedisClusterHealer) RestoreSentinel(ip string, auth *util.AuthConfig) e
 }
 
 // SetSentinelCustomConfig will call sentinel to set the configuration given in config
-func (r *RedisClusterHealer) SetSentinelCustomConfig(ip string, rc *redisv1beta1.RedisCluster, auth *util.AuthConfig) error {
+func (r *RedisClusterHealer) SetSentinelCustomConfig(ip string, rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error {
 	if len(rc.Spec.Sentinel.CustomConfig) == 0 {
 		return nil
 	}
@@ -123,7 +123,7 @@ func (r *RedisClusterHealer) SetSentinelCustomConfig(ip string, rc *redisv1beta1
 }
 
 // SetRedisCustomConfig will call redis to set the configuration given in config
-func (r *RedisClusterHealer) SetRedisCustomConfig(ip string, rc *redisv1beta1.RedisCluster, auth *util.AuthConfig) error {
+func (r *RedisClusterHealer) SetRedisCustomConfig(ip string, rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error {
 	if len(rc.Spec.Config) == 0 && len(auth.Password) == 0 {
 		return nil
 	}

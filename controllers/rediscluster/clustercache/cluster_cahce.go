@@ -2,9 +2,10 @@ package clustercache
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 
 	"github.com/von1994/cndb-redis/pkg/util"
 )
@@ -24,20 +25,20 @@ type Meta struct {
 	State     StateType
 	Size      int32
 	Auth      *util.AuthConfig
-	Obj       *redisv1beta1.RedisCluster
+	Obj       *redisv1alpha1.RedisCluster
 
-	Status  redisv1beta1.ConditionType
+	Status  redisv1alpha1.ConditionType
 	Message string
 
 	Config map[string]string
 }
 
-func newCluster(rc *redisv1beta1.RedisCluster) *Meta {
+func newCluster(rc *redisv1alpha1.RedisCluster) *Meta {
 	return &Meta{
 		Auth: &util.AuthConfig{
 			Password: rc.Spec.Password,
 		},
-		Status:    redisv1beta1.ClusterConditionCreating,
+		Status:    redisv1alpha1.ClusterConditionCreating,
 		Config:    rc.Spec.Config,
 		Obj:       rc,
 		Size:      rc.Spec.Size,
@@ -53,7 +54,7 @@ type MetaMap struct {
 	sync.Map
 }
 
-func (c *MetaMap) Cache(obj *redisv1beta1.RedisCluster) *Meta {
+func (c *MetaMap) Cache(obj *redisv1alpha1.RedisCluster) *Meta {
 	meta, ok := c.Load(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 	if !ok {
 		c.Add(obj)
@@ -63,21 +64,26 @@ func (c *MetaMap) Cache(obj *redisv1beta1.RedisCluster) *Meta {
 	return c.Get(obj)
 }
 
-func (c *MetaMap) Get(obj *redisv1beta1.RedisCluster) *Meta {
+func (c *MetaMap) Get(obj *redisv1alpha1.RedisCluster) *Meta {
 	meta, _ := c.Load(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 	return meta.(*Meta)
 }
 
-func (c *MetaMap) Add(obj *redisv1beta1.RedisCluster) {
+func (c *MetaMap) Add(obj *redisv1alpha1.RedisCluster) {
 	c.Store(getNamespacedName(obj.GetNamespace(), obj.GetName()), newCluster(obj))
 }
 
-func (c *MetaMap) Del(obj *redisv1beta1.RedisCluster) {
+func (c *MetaMap) Del(obj *redisv1alpha1.RedisCluster) {
 	c.Delete(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 }
 
-func (c *MetaMap) Update(meta *Meta, new *redisv1beta1.RedisCluster) {
+func (c *MetaMap) Update(meta *Meta, new *redisv1alpha1.RedisCluster) {
 	if meta.Obj.GetGeneration() == new.GetGeneration() {
+		// Ensure initial condition is set
+		if reflect.DeepEqual(meta.Obj.Status, redisv1alpha1.RedisClusterStatus{}) {
+			meta.State = Create
+			return
+		}
 		meta.State = Check
 		return
 	}
@@ -90,18 +96,18 @@ func (c *MetaMap) Update(meta *Meta, new *redisv1beta1.RedisCluster) {
 	meta.Auth.Password = old.Spec.Password
 	meta.Obj = new
 
-	meta.Status = redisv1beta1.ClusterConditionUpdating
+	meta.Status = redisv1alpha1.ClusterConditionUpdating
 	meta.Message = "Updating redis config"
 	if isImagesChanged(old, new) {
-		meta.Status = redisv1beta1.ClusterConditionUpgrading
+		meta.Status = redisv1alpha1.ClusterConditionUpgrading
 		meta.Message = fmt.Sprintf("Upgrading to %s", new.Spec.Image)
 	}
 	if isScalingDown(old, new) {
-		meta.Status = redisv1beta1.ClusterConditionScalingDown
+		meta.Status = redisv1alpha1.ClusterConditionScalingDown
 		meta.Message = fmt.Sprintf("Scaling down form: %d to: %d", meta.Size, new.Spec.Size)
 	}
 	if isScalingUp(old, new) {
-		meta.Status = redisv1beta1.ClusterConditionScaling
+		meta.Status = redisv1alpha1.ClusterConditionScaling
 		meta.Message = fmt.Sprintf("Scaling up form: %d to: %d", meta.Size, new.Spec.Size)
 	}
 	if isResourcesChange(old, new) {
@@ -109,19 +115,19 @@ func (c *MetaMap) Update(meta *Meta, new *redisv1beta1.RedisCluster) {
 	}
 }
 
-func isImagesChanged(old, new *redisv1beta1.RedisCluster) bool {
+func isImagesChanged(old, new *redisv1alpha1.RedisCluster) bool {
 	return old.Spec.Image == new.Spec.Image
 }
 
-func isScalingDown(old, new *redisv1beta1.RedisCluster) bool {
+func isScalingDown(old, new *redisv1alpha1.RedisCluster) bool {
 	return old.Spec.Size > new.Spec.Size
 }
 
-func isScalingUp(old, new *redisv1beta1.RedisCluster) bool {
+func isScalingUp(old, new *redisv1alpha1.RedisCluster) bool {
 	return old.Spec.Size < new.Spec.Size
 }
 
-func isResourcesChange(old, new *redisv1beta1.RedisCluster) bool {
+func isResourcesChange(old, new *redisv1alpha1.RedisCluster) bool {
 	return old.Spec.Resources.Limits.Memory().Size() != new.Spec.Resources.Limits.Memory().Size() ||
 		old.Spec.Resources.Limits.Cpu().Size() != new.Spec.Resources.Limits.Cpu().Size()
 }

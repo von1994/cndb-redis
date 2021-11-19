@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -23,21 +24,22 @@ var (
 )
 
 // Validate set the values by default if not defined and checks if the values given are valid
-func (r *RedisCluster) Validate() error {
+func (r *RedisCluster) Validate() (bool, error) {
+	rCopy := r.DeepCopy()
 	if len(r.Name) > maxNameLength {
-		return fmt.Errorf("name length can't be higher than %d", maxNameLength)
+		return false, fmt.Errorf("name length can't be higher than %d", maxNameLength)
 	}
 
 	if r.Spec.Size == 0 {
 		r.Spec.Size = defaultRedisNumber
 	} else if r.Spec.Size < defaultRedisNumber {
-		return errors.New("number of redis in spec is less than the minimum")
+		return false, errors.New("number of redis in spec is less than the minimum")
 	}
 
 	if r.Spec.Sentinel.Replicas == 0 {
 		r.Spec.Sentinel.Replicas = defaultSentinelNumber
 	} else if r.Spec.Sentinel.Replicas < defaultSentinelNumber {
-		return errors.New("number of sentinels in spec is less than the minimum")
+		return false, errors.New("number of sentinels in spec is less than the minimum")
 	}
 
 	if r.Spec.Image == "" {
@@ -64,7 +66,7 @@ func (r *RedisCluster) Validate() error {
 		disablePersistence(r.Spec.Config)
 	}
 
-	return nil
+	return reflect.DeepEqual(r, rCopy), nil
 }
 
 func enablePersistence(config map[string]string) {

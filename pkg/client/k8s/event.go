@@ -6,7 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 )
 
 // Event the client that push event to kubernetes
@@ -17,8 +17,8 @@ type Event interface {
 	SlaveRemove(object runtime.Object, message string)
 	// CreateCluster event ClusterCreating
 	CreateCluster(object runtime.Object)
-	// UpdateCluster event ClusterUpdating
-	UpdateCluster(object runtime.Object, message string)
+	// UpdateClusterStatus event ClusterUpdating
+	UpdateClusterStatus(object runtime.Object, message string)
 	// UpgradedCluster event ClusterUpgrading
 	UpgradedCluster(object runtime.Object, message string)
 	// EnsureCluster event Ensure
@@ -47,27 +47,27 @@ func NewEvent(eventCli record.EventRecorder, logger logr.Logger) Event {
 
 // NewSlaveAdd implement the Event.Interface
 func (e *EventOption) NewSlaveAdd(object runtime.Object, message string) {
-	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1beta1.ClusterConditionScaling), message)
+	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionScaling), message)
 }
 
 // SlaveRemove implement the Event.Interface
 func (e *EventOption) SlaveRemove(object runtime.Object, message string) {
-	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1beta1.ClusterConditionScalingDown), message)
+	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionScalingDown), message)
 }
 
 // CreateCluster implement the Event.Interface
 func (e *EventOption) CreateCluster(object runtime.Object) {
-	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1beta1.ClusterConditionCreating), "Bootstrap redis cluster")
+	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionCreating), "Bootstrap redis cluster")
 }
 
-// UpdateCluster implement the Event.Interface
-func (e *EventOption) UpdateCluster(object runtime.Object, message string) {
-	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1beta1.ClusterConditionUpdating), message)
+// UpdateClusterStatus implement the Event.Interface
+func (e *EventOption) UpdateClusterStatus(object runtime.Object, message string) {
+	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionUpdating), message)
 }
 
 // UpgradedCluster implement the Event.Interface
 func (e *EventOption) UpgradedCluster(object runtime.Object, message string) {
-	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1beta1.ClusterConditionUpgrading), message)
+	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionUpgrading), message)
 }
 
 // EnsureCluster implement the Event.Interface
@@ -82,10 +82,10 @@ func (e *EventOption) CheckCluster(object runtime.Object) {
 
 // FailedCluster implement the Event.Interface
 func (e *EventOption) FailedCluster(object runtime.Object, message string) {
-	e.eventsCli.Event(object, v1.EventTypeWarning, string(redisv1beta1.ClusterConditionFailed), message)
+	e.eventsCli.Event(object, v1.EventTypeWarning, string(redisv1alpha1.ClusterConditionFailed), message)
 }
 
 // HealthCluster implement the Event.Interface
 func (e *EventOption) HealthCluster(object runtime.Object) {
-	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1beta1.ClusterConditionHealthy), "Redis cluster is healthy")
+	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionHealthy), "Redis cluster is healthy")
 }

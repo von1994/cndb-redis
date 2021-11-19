@@ -3,7 +3,7 @@ package util
 import (
 	"fmt"
 
-	redisv1beta1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 )
 
 // GetRedisShutdownConfigMapName returns the name for redis configmap
-func GetRedisShutdownConfigMapName(rc *redisv1beta1.RedisCluster) string {
+func GetRedisShutdownConfigMapName(rc *redisv1alpha1.RedisCluster) string {
 	if rc.Spec.ShutdownConfigMap != "" {
 		return rc.Spec.ShutdownConfigMap
 	}
@@ -28,17 +28,17 @@ func GetRedisShutdownConfigMapName(rc *redisv1beta1.RedisCluster) string {
 }
 
 // GetRedisName returns the name for redis resources
-func GetRedisName(rc *redisv1beta1.RedisCluster) string {
+func GetRedisName(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName(RedisName, rc.Name)
 }
 
 // GetRedisShutdownName returns the name for redis resources
-func GetRedisShutdownName(rc *redisv1beta1.RedisCluster) string {
+func GetRedisShutdownName(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName(RedisShutdownName, rc.Name)
 }
 
 // GetSentinelName returns the name for sentinel resources
-func GetSentinelName(rc *redisv1beta1.RedisCluster) string {
+func GetSentinelName(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName(SentinelName, rc.Name)
 }
 
@@ -46,10 +46,10 @@ func GenerateName(typeName, metaName string) string {
 	return fmt.Sprintf("%s%s-%s", BaseName, typeName, metaName)
 }
 
-func GetSentinelReadinessCm(rc *redisv1beta1.RedisCluster) string {
+func GetSentinelReadinessCm(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName("-sentinel-readiness", rc.Name)
 }
 
-func GetSentinelHeadlessSvc(rc *redisv1beta1.RedisCluster) string {
+func GetSentinelHeadlessSvc(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName("-sentinel-headless", rc.Name)
 }
