@@ -1,6 +1,5 @@
 package k8s_test
 
-//
 //import (
 //	"errors"
 //	"testing"
@@ -12,10 +11,10 @@ package k8s_test
 //	"k8s.io/apimachinery/pkg/runtime/schema"
 //	kubetesting "k8s.io/client-go/testing"
 //	"sigs.k8s.io/controller-runtime/pkg/client/config"
-//	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+//	logf "sigs.k8s.io/controller-runtime/pkg/log"
 //
 //	"github.com/von1994/cndb-redis/pkg/client/k8s"
-//	"github.com/von1994/cndb-redis/test/client"
+//	"github.com/von1994/cndb-redis/pkg/test/client"
 //)
 //
 //var (
@@ -36,14 +35,14 @@ package k8s_test
 //}
 //
 //func TestConfigMapServiceGetCreateOrUpdate(t *testing.T) {
+//	testns := "testns"
+//
 //	testConfigMap := &corev1.ConfigMap{
 //		ObjectMeta: metav1.ObjectMeta{
-//			Name:            "testconfigmap1",
-//			ResourceVersion: "10",
+//			Name:      "testconfigmap1",
+//			Namespace: testns,
 //		},
 //	}
-//
-//	testns := "testns"
 //
 //	tests := []struct {
 //		name               string
@@ -94,7 +93,7 @@ package k8s_test
 //
 //	for _, test := range tests {
 //		t.Run(test.name, func(t *testing.T) {
-//			assert := assert.New(t)
+//			asserts := assert.New(t)
 //
 //			cfg, err := config.GetConfig()
 //			if err != nil {
@@ -107,11 +106,10 @@ package k8s_test
 //
 //			service := k8s.NewConfigMap(kubeClient, log)
 //			err = service.CreateOrUpdateConfigMap(testns, test.configMap)
-//
 //			if test.expErr {
-//				assert.Error(err)
+//				asserts.Error(err)
 //			} else {
-//				assert.NoError(err)
+//				asserts.NoError(err)
 //			}
 //		})
 //	}

@@ -4,6 +4,9 @@ metadata:
   name: controller-manager
   namespace: system
 spec:
+  selector:
+    matchLabels:
+      component: "controller-manager"
   template:
     spec:
       containers:
