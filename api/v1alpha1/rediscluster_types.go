@@ -53,8 +53,15 @@ type RedisClusterSpec struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="SIZE",type=integer,JSONPath=`.spec.size`
+// +kubebuilder:printcolumn:name="SENTINEL-SIZE",type=integer,JSONPath=`.spec.sentinel.replicas`,priority=10
+// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="HEALTHY",type=string,JSONPath=`.status.conditions[?(@.type=="Healthy")].status`
+// +kubebuilder:printcolumn:name="MASTER-IP",type=string,JSONPath=".status.masterIP",priority=10
+// +kubebuilder:printcolumn:name="SENTINEL-IP",type=string,JSONPath=".status.sentinelIP",priority=10
+// +kubebuilder:resource:scope=Namespaced,shortName={rediscluster,rc},singular=rediscluster
 type RedisCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -67,7 +74,7 @@ type RedisCluster struct {
 // RedisClusterList contains a list of RedisCluster
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 type RedisClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -13,35 +13,10 @@ spec:
     kind: RedisCluster
     listKind: RedisClusterList
     plural: redisclusters
-    shortNames:
-    - rediscluster
-    - rc
     singular: rediscluster
   scope: Namespaced
   versions:
-  - additionalPrinterColumns:
-    - jsonPath: .spec.size
-      name: SIZE
-      type: integer
-    - jsonPath: .spec.sentinel.replicas
-      name: SENTINEL-SIZE
-      priority: 10
-      type: integer
-    - jsonPath: .metadata.creationTimestamp
-      name: AGE
-      type: date
-    - jsonPath: .status.conditions[?(@.type=="Healthy")].status
-      name: HEALTHY
-      type: string
-    - jsonPath: .status.masterIP
-      name: MASTER-IP
-      priority: 10
-      type: string
-    - jsonPath: .status.sentinelIP
-      name: SENTINEL-IP
-      priority: 10
-      type: string
-    name: v1alpha1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: RedisCluster is the Schema for the redisclusters API
@@ -1802,6 +1777,10 @@ spec:
                       metadata:
                         description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata'
                         type: object
+                        properties:
+                          name:
+                            description: "manual add"
+                            type: string
                       spec:
                         description: 'Spec defines the desired characteristics of
                           a volume requested by a pod author. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims'
