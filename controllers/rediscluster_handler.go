@@ -35,10 +35,14 @@ type RedisClusterHandler struct {
 func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).Info("handler doing")
 	// validate may change the spec.
+	// TODO: 考虑使用validatingWebhook和mutatingWebhook实现
 	if modified, err := rc.Validate(); err != nil {
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
 	} else if modified {
+		if err := r.k8sServices.UpdateClusterSpec(rc.Namespace, rc); err != nil {
+			return err
+		}
 		return service.ImmediatelyNeedRequeueErr
 	}
 

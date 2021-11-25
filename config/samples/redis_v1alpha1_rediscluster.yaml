@@ -8,6 +8,8 @@ metadata:
 spec:
   # Add fields here
   size: 3
+  exporter:
+    enabled: true
 #  storage:
 #    keepAfterDeletion: true
 #    persistentVolumeClaim:

@@ -10,8 +10,10 @@ import (
 
 // Cluster the client that knows how to interact with kubernetes to manage RedisCluster
 type Cluster interface {
-	// UpdateClusterStatus update the RedisCluster
+	// UpdateClusterStatus update the RedisCluster Status
 	UpdateClusterStatus(namespace string, cluster *redisv1alpha1.RedisCluster) error
+	// UpdateClusterStatus update the RedisCluster Spec
+	UpdateClusterSpec(namespace string, cluster *redisv1alpha1.RedisCluster) error
 }
 
 // ClusterOption is the RedisCluster client that using API calls to kubernetes.
@@ -40,5 +42,18 @@ func (c *ClusterOption) UpdateClusterStatus(namespace string, cluster *redisv1al
 	}
 	c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
 		V(3).Info("redisClusterStatus updated")
+	return nil
+}
+
+// UpdateClusterStatus implement the  Cluster.Interface
+func (c *ClusterOption) UpdateClusterSpec(namespace string, cluster *redisv1alpha1.RedisCluster) error {
+	err := c.client.Update(context.TODO(), cluster)
+	if err != nil {
+		c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
+			Error(err, "redisClusterSpec")
+		return err
+	}
+	c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
+		V(3).Info("redisClusterSpec updated")
 	return nil
 }

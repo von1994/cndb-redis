@@ -14,7 +14,10 @@ const (
 
 	defaultRedisNumber    = 3
 	defaultSentinelNumber = 3
-	defaultRedisImage     = "redis:5.0.4-alpine"
+	defaultRedisImage     = "harbor.enmotech.com/cndb-redis/redis:5.0.4-alpine"
+
+	defaultRedisExporterImage = "harbor.enmotech.com/cndb-redis/redis-exporter:1.31.4"
+	defaultImagePullPolicy = "IfNotPresent"
 
 	defaultSlavePriority = "1"
 )
@@ -66,7 +69,16 @@ func (r *RedisCluster) Validate() (bool, error) {
 		disablePersistence(r.Spec.Config)
 	}
 
-	return reflect.DeepEqual(r, rCopy), nil
+	if r.Spec.Exporter.Enabled {
+		if r.Spec.Exporter.Image == "" {
+			r.Spec.Exporter.Image = defaultRedisExporterImage
+		}
+		if r.Spec.Exporter.ImagePullPolicy == "" {
+			r.Spec.Exporter.ImagePullPolicy = defaultImagePullPolicy
+		}
+	}
+
+	return !reflect.DeepEqual(r, rCopy), nil
 }
 
 func enablePersistence(config map[string]string) {
