@@ -70,7 +70,6 @@ type RedisCluster struct {
 	Status RedisClusterStatus `json:"status,omitempty"`
 }
 
-
 // RedisClusterList contains a list of RedisCluster
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

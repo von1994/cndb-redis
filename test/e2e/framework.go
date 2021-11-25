@@ -247,7 +247,7 @@ func (f *Framework) createTestNamespace() error {
 	nsSpec := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{Name: f.namespace, Labels: map[string]string{
 			"test": "e2e",
-		},},
+		}},
 	}
 	_, err := f.Client.CoreV1().Namespaces().Create(context.TODO(), nsSpec, metav1.CreateOptions{})
 	return err

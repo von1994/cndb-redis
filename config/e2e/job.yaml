@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: e2e
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - name: e2e
+          image: e2e:latest
+          imagePullPolicy: Always
+          env:
+            - name: STORAGECLASSNAME
+              value: topolvm-provisioner
+            - name: E2E_GINKGO_SKIP
+              value: ""
+      restartPolicy: Never
+      serviceAccountName: cndb-redis-e2e
+  backoffLimit: 1

@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	checkInterval             = 5 * time.Second
-	timeOut                   = 30 * time.Second
+	checkInterval = 5 * time.Second
+	timeOut       = 30 * time.Second
 )
 
 // CheckAndHeal Check the health of the cluster and heal,

@@ -40,6 +40,8 @@ IMG ?= harbor.enmotech.com/cndb-redis/controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
+E2E_IMG ?= harbor.enmotech.com/cndb-redis/e2e:latest
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -91,6 +93,14 @@ test: manifests generate fmt vet ## Run tests.
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh;export KUBECONFIG=~/.kube/config; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
+e2e-img:
+	docker build -t ${E2E_IMG} -f Dockerfile-e2e .
+	docker push ${E2E_IMG}
+
+e2e: generate fmt vet
+	cd config/e2e && $(KUSTOMIZE) edit set image e2e=${E2E_IMG}
+	$(KUSTOMIZE) build config/e2e | kubectl apply -f -
+
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
@@ -99,6 +109,7 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+## 移除test，目前e2e test由job在集群内发起，单元测试未开启
 docker-build: ## Build docker image with the manager.
 	docker build -t ${IMG} .
 
@@ -113,6 +124,7 @@ install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
+## 移除manifests，因为该步骤会生成CRD，而CRD中部分字段需要手工修改
 deploy: kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
