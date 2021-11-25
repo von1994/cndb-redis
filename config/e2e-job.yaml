@@ -1,0 +1,173 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: cndb-redis-e2e
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - "rbac.authorization.k8s.io"
+    resources:
+      - rolebindings
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - redis.lovelycat.io
+    resources:
+      - redisclusters
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - redis.lovelycat.io
+    resources:
+      - redisclusters/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - redis.lovelycat.io
+    resources:
+      - redisclusters/status
+    verbs:
+      - get
+      - patch
+      - update
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cndb-redis-e2e
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cndb-redis-e2e
+subjects:
+  - kind: ServiceAccount
+    name: cndb-redis-e2e
+    namespace: cndb-redis-system
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cndb-redis-e2e
+  namespace: cndb-redis-system
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cndb-redis-e2e
+spec:
+  template:
+    spec:
+      containers:
+        - name: e2e
+          image: harbor.enmotech.com/cndb-redis/e2e:latest
+          imagePullPolicy: Always
+          env:
+            - name: STORAGECLASSNAME
+              value: topolvm-provisioner
+#          command:
+#            - /bin/bash
+#            - -c
+#            - sleep 86400
+      restartPolicy: Never
+      serviceAccountName: cndb-redis-e2e
+  backoffLimit: 1

@@ -39,7 +39,7 @@ func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
 	} else if modified {
-		return immediatelyNeedRequeueErr
+		return service.ImmediatelyNeedRequeueErr
 	}
 
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).Info("validated and no updates")
@@ -77,7 +77,7 @@ func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 	r.eventsCli.CheckCluster(rc)
 	if err := r.CheckAndHeal(meta); err != nil {
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
-		if err.Error() != needRequeueMsg {
+		if err.Error() != service.NeedRequeueMsg {
 			r.eventsCli.FailedCluster(rc, err.Error())
 			rc.Status.SetFailedCondition(err.Error())
 			if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {

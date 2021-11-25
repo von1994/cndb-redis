@@ -10,11 +10,11 @@ package k8s_test
 //	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 //	"k8s.io/apimachinery/pkg/runtime/schema"
 //	kubetesting "k8s.io/client-go/testing"
-//	"sigs.k8s.io/controller-runtime/pkg/client/config"
+//	"sigs.k8s.io/controller-runtime/pkg/client/config.yaml"
 //	logf "sigs.k8s.io/controller-runtime/pkg/log"
 //
 //	"github.com/von1994/cndb-redis/pkg/client/k8s"
-//	"github.com/von1994/cndb-redis/pkg/test/client"
+//	"github.com/von1994/cndb-redis/test/client"
 //)
 //
 //var (
@@ -95,7 +95,7 @@ package k8s_test
 //		t.Run(test.name, func(t *testing.T) {
 //			asserts := assert.New(t)
 //
-//			cfg, err := config.GetConfig()
+//			cfg, err := config.yaml.GetConfig()
 //			if err != nil {
 //				panic(err)
 //			}

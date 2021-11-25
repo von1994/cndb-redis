@@ -140,9 +140,9 @@ func (r *RedisClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	if err = r.handler.Do(instance); err != nil {
 		switch err.Error() {
-		case needRequeueImmediatelyMsg:
+		case service.NeedRequeueImmediatelyMsg:
 			return reconcile.Result{Requeue: true}, nil
-		case needRequeueMsg:
+		case service.NeedRequeueMsg:
 			return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
 		default:
 			reqLogger.Error(err, "Reconcile handler")

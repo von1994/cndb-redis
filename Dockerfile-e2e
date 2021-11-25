@@ -1,0 +1,24 @@
+ARG GOLANG_VERSION=1.16.5
+FROM golang:${GOLANG_VERSION}
+
+ENV GOLANG_VERSION=${GOLANG_VERSION}
+ENV GOPROXY="https://goproxy.cn"
+
+RUN apt update && apt install -y git
+
+RUN go get -u github.com/onsi/ginkgo/ginkgo github.com/onsi/gomega/...
+
+ARG PROJECT_NAME=cndb-redis
+ARG REPO_PATH=github.com/von1994/$PROJECT_NAME
+
+RUN mkdir -p /go/src/${REPO_PATH}
+COPY api/ /go/src/${REPO_PATH}/api/
+COPY pkg/ /go/src/${REPO_PATH}/pkg/
+COPY test/ /go/src/${REPO_PATH}/test/
+COPY vendor/ /go/src/${REPO_PATH}/vendor/
+COPY hack/ /go/src/${REPO_PATH}/hack/
+COPY go.mod /go/src/${REPO_PATH}
+
+RUN chmod +x /go/src/${REPO_PATH}/hack/e2e.sh
+
+CMD /go/src/github.com/von1994/cndb-redis/hack/e2e.sh

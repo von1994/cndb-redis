@@ -20,6 +20,7 @@ import (
 type RedisClusterCheck interface {
 	CheckRedisNumber(redisCluster *redisv1alpha1.RedisCluster) error
 	CheckSentinelNumber(redisCluster *redisv1alpha1.RedisCluster) error
+	EnsureSentinelReady(redisCluster *redisv1alpha1.RedisCluster) error
 	CheckSentinelReadyReplicas(redisCluster *redisv1alpha1.RedisCluster) error
 	CheckAllSlavesFromMaster(master string, redisCluster *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error
 	CheckSentinelNumberInMemory(sentinel string, redisCluster *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error
@@ -32,6 +33,16 @@ type RedisClusterCheck interface {
 	GetMinimumRedisPodTime(redisCluster *redisv1alpha1.RedisCluster) (time.Duration, error)
 	CheckRedisConfig(redisCluster *redisv1alpha1.RedisCluster, addr string, auth *util.AuthConfig) error
 }
+
+const (
+	NeedRequeueMsg            = "need requeue"
+	NeedRequeueImmediatelyMsg = "need requeue immediately"
+)
+
+var (
+	NeedRequeueErr            = errors.New(NeedRequeueMsg)
+	ImmediatelyNeedRequeueErr = errors.New(NeedRequeueImmediatelyMsg)
+)
 
 var parseConfigMap = map[string]int8{
 	"maxmemory":                  0,
@@ -119,6 +130,18 @@ func (r *RedisClusterChecker) CheckSentinelNumber(rc *redisv1alpha1.RedisCluster
 	}
 	if rc.Spec.Sentinel.Replicas != *d.Spec.Replicas {
 		return errors.New("number of sentinel pods differ from specification")
+	}
+	return nil
+}
+
+func (r *RedisClusterChecker) EnsureSentinelReady(rc *redisv1alpha1.RedisCluster) error {
+	d, err := r.k8sService.GetStatefulSet(rc.Namespace, util.GetSentinelName(rc))
+	if err != nil {
+		return err
+	}
+	if rc.Spec.Sentinel.Replicas != d.Status.ReadyReplicas {
+		r.logger.Info(fmt.Sprintf("waiting redis cluster %s all sentinel pods become ready", rc.Name))
+		return NeedRequeueErr
 	}
 	return nil
 }

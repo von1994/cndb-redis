@@ -1,0 +1,55 @@
+  name: "cndb-redis-controller-manager"
+  serviceType: "deployment"
+  containers: 
+    - 
+      name: "manager"
+      dev: 
+        gitUrl: ""
+        image: "harbor.enmotech.com/library/golang:1.16"
+        shell: "bash"
+        workDir: "/home/nocalhost"
+        storageClass: ""
+        resources: 
+          limits: 
+            memory: "2048Mi"
+            cpu: "2"
+          requests: 
+            memory: "512Mi"
+            cpu: "0.5"
+        persistentVolumeDirs: []
+        command: 
+          run: 
+            - "go"
+            - "run"
+            - "main.go"
+          debug: 
+            - "dlv"
+            - "debug"
+            - "--listen=0.0.0.0:9999"
+            - "--log"
+            - "--headless"
+            - "--api-version=2"
+            - "--accept-multiclient"
+            - "main.go"
+        debug: 
+          remoteDebugPort: 9999
+        hotReload: true
+        sync: 
+          type: "send"
+          mode: "pattern"
+          filePattern: 
+            - "."
+          ignoreFilePattern: 
+            - ".git"
+            - "testbin"
+            - "bin"
+            - "hack"
+        env: 
+          - 
+            name: "GOPROXY"
+            value: "https://goproxy.cn"
+          - 
+            name: "GO111MODULE"
+            value: "on"
+        portForward: []
+        sidecarImage: ""

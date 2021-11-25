@@ -8,3 +8,16 @@ metadata:
 spec:
   # Add fields here
   size: 3
+  storage:
+    keepAfterDeletion: true
+    persistentVolumeClaim:
+      metadata:
+        name: "test"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: topolvm-provisioner
+        volumeMode: Filesystem

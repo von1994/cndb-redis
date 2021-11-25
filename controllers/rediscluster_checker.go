@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"github.com/von1994/cndb-redis/controllers/rediscluster/service"
 	"time"
 
 	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
@@ -13,13 +14,6 @@ import (
 const (
 	checkInterval             = 5 * time.Second
 	timeOut                   = 30 * time.Second
-	needRequeueMsg            = "need requeue"
-	needRequeueImmediatelyMsg = "need requeue immediately"
-)
-
-var (
-	needRequeueErr            = errors.New(needRequeueMsg)
-	immediatelyNeedRequeueErr = errors.New(needRequeueImmediatelyMsg)
 )
 
 // CheckAndHeal Check the health of the cluster and heal,
@@ -36,7 +30,7 @@ func (r *RedisClusterHandler) CheckAndHeal(meta *clustercache.Meta) error {
 	if err := r.rcChecker.CheckRedisNumber(meta.Obj); err != nil {
 		r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).V(2).Info("number of redis mismatch, this could be for a change on the statefulset")
 		r.eventsCli.UpdateClusterStatus(meta.Obj, "wait for all redis server start")
-		return needRequeueErr
+		return service.NeedRequeueErr
 	}
 	if err := r.rcChecker.CheckSentinelNumber(meta.Obj); err != nil {
 		r.eventsCli.FailedCluster(meta.Obj, err.Error())
@@ -126,6 +120,11 @@ func (r *RedisClusterHandler) CheckAndHeal(meta *clustercache.Meta) error {
 	}
 
 	if err = r.setSentinelConfig(meta, sentinels); err != nil {
+		return err
+	}
+
+	// Ensure sentinel redises are all ready
+	if err = r.rcChecker.EnsureSentinelReady(meta.Obj); err != nil {
 		return err
 	}
 

@@ -21,7 +21,7 @@ import (
 	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 	"github.com/von1994/cndb-redis/pkg/client/k8s"
 	"github.com/von1994/cndb-redis/pkg/client/redis"
-	client2 "github.com/von1994/cndb-redis/pkg/test/client"
+	client2 "github.com/von1994/cndb-redis/test/client"
 )
 
 var log = logf.Log.WithName("e2e_framework")
@@ -245,7 +245,9 @@ func (f *Framework) DeletePod(name string) {
 
 func (f *Framework) createTestNamespace() error {
 	nsSpec := &v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: f.namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: f.namespace, Labels: map[string]string{
+			"test": "e2e",
+		},},
 	}
 	_, err := f.Client.CoreV1().Namespaces().Create(context.TODO(), nsSpec, metav1.CreateOptions{})
 	return err
@@ -262,7 +264,7 @@ func (f *Framework) createRBAC() error {
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     "cr-uae-n1",
+			Name:     "cndb-redis-e2e",
 		},
 		Subjects: []rbacv1.Subject{{
 			APIGroup:  "rbac.authorization.k8s.io",
@@ -281,14 +283,14 @@ func (f *Framework) deleteRBAC() error {
 }
 
 func (f *Framework) rolebindingName() string {
-	return fmt.Sprintf("cr-uae-n1~g-%s", f.namespace)
+	return fmt.Sprintf("cd~g-%s", f.namespace)
 }
 
 func loadConfig() (*restclient.Config, error) {
 	kubeconfig := os.Getenv("KUBECONFIG")
-	if kubeconfig == "" {
-		return nil, fmt.Errorf("env KUBECONFIG not set")
-	}
+	//if kubeconfig == "" {
+	//	return nil, fmt.Errorf("env KUBECONFIG not set")
+	//}
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err

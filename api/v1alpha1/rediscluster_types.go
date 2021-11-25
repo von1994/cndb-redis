@@ -49,10 +49,9 @@ type RedisClusterSpec struct {
 	Sentinel SentinelSettings `json:"sentinel,omitempty"`
 }
 
+// RedisCluster is the Schema for the redisclusters API
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// RedisCluster is the Schema for the redisclusters API
 // +k8s:openapi-gen=true
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
@@ -64,10 +63,11 @@ type RedisCluster struct {
 	Status RedisClusterStatus `json:"status,omitempty"`
 }
 
-// +genclient
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RedisClusterList contains a list of RedisCluster
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+//+kubebuilder:object:root=true
 type RedisClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
