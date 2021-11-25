@@ -23,6 +23,7 @@ type RedisClusterClient interface {
 	EnsureSentinelStatefulset(redisCluster *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisStatefulset(redisCluster *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisService(redisCluster *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error
+	EnsureRedisMonitorService(redisCluster *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisShutdownConfigMap(redisCluster *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisConfigMap(redisCluster *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureNotPresentRedisService(redisCluster *redisv1alpha1.RedisCluster) error
@@ -181,6 +182,12 @@ func (r *RedisClusterKubeClient) EnsureRedisShutdownConfigMap(rc *redisv1alpha1.
 // EnsureRedisService makes sure the redis statefulset exists
 func (r *RedisClusterKubeClient) EnsureRedisService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
 	svc := generateRedisService(rc, labels, ownerRefs)
+	return r.K8SService.CreateIfNotExistsService(rc.Namespace, svc)
+}
+
+// EnsureRedisService makes sure the redis statefulset exists
+func (r *RedisClusterKubeClient) EnsureRedisMonitorService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
+	svc := generateRedisMonitorService(rc, labels, ownerRefs)
 	return r.K8SService.CreateIfNotExistsService(rc.Namespace, svc)
 }
 

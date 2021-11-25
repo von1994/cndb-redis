@@ -20,6 +20,11 @@ const (
 	redisStorageVolumeName               = "redis-data"
 
 	graceTime = 30
+
+	useLabelKey       = "used-for"
+	monitorLabelValue = "monitor"
+
+	metricsPort = 9125
 )
 
 func generateSentinelService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
@@ -72,6 +77,34 @@ func generateRedisService(rc *redisv1alpha1.RedisCluster, labels map[string]stri
 					Protocol:   corev1.ProtocolTCP,
 					Name:       "redis",
 					TargetPort: redisTargetPort,
+				},
+			},
+			Selector: labels,
+		},
+	}
+}
+
+func generateRedisMonitorService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
+	name := util.GetRedisName(rc) + "-monitor"
+	namespace := rc.Namespace
+	labels = util.MergeLabels(labels, generateSelectorLabels(util.RedisRoleName, rc.Name))
+	monitorLabels := util.MergeLabels(labels, map[string]string{useLabelKey: monitorLabelValue})
+	metricsTargetPort := intstr.FromInt(metricsPort)
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            name,
+			Namespace:       namespace,
+			Labels:          monitorLabels,
+			OwnerReferences: ownerRefs,
+		},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Port:       metricsPort,
+					Protocol:   corev1.ProtocolTCP,
+					Name:       "prometheus",
+					TargetPort: metricsTargetPort,
 				},
 			},
 			Selector: labels,

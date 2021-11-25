@@ -17,6 +17,11 @@ func (r *RedisClusterHandler) Ensure(rc *redisv1alpha1.RedisCluster, labels map[
 	if err := r.rcService.EnsureSentinelHeadlessService(rc, labels, or); err != nil {
 		return err
 	}
+	if rc.Spec.Exporter.Enabled {
+		if err := r.rcService.EnsureRedisMonitorService(rc, labels, or); err != nil {
+			return err
+		}
+	}
 	if err := r.rcService.EnsureSentinelConfigMap(rc, labels, or); err != nil {
 		return err
 	}

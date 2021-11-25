@@ -17,7 +17,7 @@ const (
 	defaultRedisImage     = "harbor.enmotech.com/cndb-redis/redis:5.0.4-alpine"
 
 	defaultRedisExporterImage = "harbor.enmotech.com/cndb-redis/redis-exporter:1.31.4"
-	defaultImagePullPolicy = "IfNotPresent"
+	defaultImagePullPolicy    = "IfNotPresent"
 
 	defaultSlavePriority = "1"
 )
