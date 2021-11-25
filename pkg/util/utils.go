@@ -1,6 +1,7 @@
 package util
 
 import (
+	"os"
 	"strconv"
 	"strings"
 )
@@ -59,4 +60,17 @@ func ParseRedisMemConf(p string) (string, error) {
 	}
 
 	return strconv.FormatInt(val*mul, 10), nil
+}
+
+func GetEnvOrDefault(name, defaultVal string) (val string) {
+	val = os.Getenv(name)
+	if val == "" {
+		val = defaultVal
+	}
+	return
+}
+
+// ReplaceSymbol 将"-"替换为"_"
+func ReplaceSymbol(in string) (out string) {
+	return strings.ReplaceAll(in, "-", "_")
 }

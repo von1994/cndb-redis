@@ -24,7 +24,6 @@ spec:
       type: integer
     - jsonPath: .spec.sentinel.replicas
       name: SENTINEL-SIZE
-      priority: 10
       type: integer
     - jsonPath: .metadata.creationTimestamp
       name: AGE

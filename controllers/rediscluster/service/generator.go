@@ -15,17 +15,6 @@ import (
 	"github.com/von1994/cndb-redis/pkg/util"
 )
 
-const (
-	redisShutdownConfigurationVolumeName = "redis-shutdown-config"
-	redisStorageVolumeName               = "redis-data"
-
-	graceTime = 30
-
-	useLabelKey       = "used-for"
-	monitorLabelValue = "monitor"
-
-	metricsPort = 9125
-)
 
 func generateSentinelService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
 	name := util.GetSentinelName(rc)
@@ -89,7 +78,7 @@ func generateRedisMonitorService(rc *redisv1alpha1.RedisCluster, labels map[stri
 	namespace := rc.Namespace
 	labels = util.MergeLabels(labels, generateSelectorLabels(util.RedisRoleName, rc.Name))
 	monitorLabels := util.MergeLabels(labels, map[string]string{useLabelKey: monitorLabelValue})
-	metricsTargetPort := intstr.FromInt(metricsPort)
+	metricsTargetPort := intstr.FromInt(exporterPort)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            name,
@@ -101,7 +90,7 @@ func generateRedisMonitorService(rc *redisv1alpha1.RedisCluster, labels map[stri
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{
 				{
-					Port:       metricsPort,
+					Port:       exporterPort,
 					Protocol:   corev1.ProtocolTCP,
 					Name:       "prometheus",
 					TargetPort: metricsTargetPort,

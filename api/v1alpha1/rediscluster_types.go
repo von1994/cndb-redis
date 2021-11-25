@@ -55,7 +55,7 @@ type RedisClusterSpec struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:object:root=true
 // +kubebuilder:printcolumn:name="SIZE",type=integer,JSONPath=`.spec.size`
-// +kubebuilder:printcolumn:name="SENTINEL-SIZE",type=integer,JSONPath=`.spec.sentinel.replicas`,priority=10
+// +kubebuilder:printcolumn:name="SENTINEL-SIZE",type=integer,JSONPath=`.spec.sentinel.replicas`
 // +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:printcolumn:name="HEALTHY",type=string,JSONPath=`.status.conditions[?(@.type=="Healthy")].status`
 // +kubebuilder:printcolumn:name="MASTER-IP",type=string,JSONPath=".status.masterIP",priority=10

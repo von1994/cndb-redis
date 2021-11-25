@@ -53,9 +53,10 @@ var (
 
 func init() {
 	controllerFlagSet = pflag.NewFlagSet("controller", pflag.ExitOnError)
-	controllerFlagSet.IntVar(&maxConcurrentReconciles, "ctr-maxconcurrent", 1, "the maximum number of concurrent Reconciles which can be run. Defaults to 4.")
+	controllerFlagSet.IntVar(&maxConcurrentReconciles, "ctr-maxconcurrent", 4, "the maximum number of concurrent Reconciles which can be run. Defaults to 4.")
 	controllerFlagSet.IntVar(&reconcileTime, "ctr-reconciletime", 60, "")
-	metrics.InitPrometheusMetrics("default", prometheus.NewRegistry())
+	namespace := util.ReplaceSymbol(util.GetEnvOrDefault("MY_POD_NAMESPACE", "default"))
+	metrics.InitPrometheusMetrics(namespace, prometheus.NewRegistry())
 }
 
 // RedisClusterReconciler reconciles a RedisCluster object
