@@ -2,7 +2,7 @@ package service
 
 // variables refering to the redis exporter port
 const (
-	exporterPort                 = 9125
+	exporterPort                 = 9121
 	exporterPortName             = "http-metrics"
 	exporterContainerName        = "redis-exporter"
 	exporterDefaultRequestCPU    = "50m"
