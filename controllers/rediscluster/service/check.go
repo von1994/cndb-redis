@@ -42,7 +42,7 @@ const (
 
 var (
 	// ErrNeedRequeue 表示需要等待然后重试并且不抛出错误
-	ErrNeedRequeue            = errors.New(NeedRequeueMsg)
+	ErrNeedRequeue = errors.New(NeedRequeueMsg)
 
 	// ErrNeedRequeueImmediately 表示需要立即重试并且不抛出错误
 	ErrNeedRequeueImmediately = errors.New(NeedRequeueImmediatelyMsg)
