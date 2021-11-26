@@ -34,14 +34,18 @@ type RedisClusterCheck interface {
 	CheckRedisConfig(redisCluster *redisv1alpha1.RedisCluster, addr string, auth *util.AuthConfig) error
 }
 
+// const
 const (
 	NeedRequeueMsg            = "need requeue"
 	NeedRequeueImmediatelyMsg = "need requeue immediately"
 )
 
 var (
-	NeedRequeueErr            = errors.New(NeedRequeueMsg)
-	ImmediatelyNeedRequeueErr = errors.New(NeedRequeueImmediatelyMsg)
+	// ErrNeedRequeue 表示需要等待然后重试并且不抛出错误
+	ErrNeedRequeue            = errors.New(NeedRequeueMsg)
+
+	// ErrNeedRequeueImmediately 表示需要立即重试并且不抛出错误
+	ErrNeedRequeueImmediately = errors.New(NeedRequeueImmediatelyMsg)
 )
 
 var parseConfigMap = map[string]int8{
@@ -134,6 +138,10 @@ func (r *RedisClusterChecker) CheckSentinelNumber(rc *redisv1alpha1.RedisCluster
 	return nil
 }
 
+// EnsureSentinelReady 通过检查目标副本数和ready副本数是否相等来判断sentinel是否ready
+//  @receiver r
+//  @param rc
+//  @return error
 func (r *RedisClusterChecker) EnsureSentinelReady(rc *redisv1alpha1.RedisCluster) error {
 	d, err := r.k8sService.GetStatefulSet(rc.Namespace, util.GetSentinelName(rc))
 	if err != nil {
@@ -141,7 +149,7 @@ func (r *RedisClusterChecker) EnsureSentinelReady(rc *redisv1alpha1.RedisCluster
 	}
 	if rc.Spec.Sentinel.Replicas != d.Status.ReadyReplicas {
 		r.logger.Info(fmt.Sprintf("waiting redis cluster %s all sentinel pods become ready", rc.Name))
-		return NeedRequeueErr
+		return ErrNeedRequeue
 	}
 	return nil
 }

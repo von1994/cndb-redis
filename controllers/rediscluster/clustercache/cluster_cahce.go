@@ -10,8 +10,10 @@ import (
 	"github.com/von1994/cndb-redis/pkg/util"
 )
 
+// StateType 表示状态类型
 type StateType string
 
+// const
 const (
 	Create StateType = "create"
 	Update StateType = "update"
@@ -54,6 +56,10 @@ type MetaMap struct {
 	sync.Map
 }
 
+// Cache 增加或更新rediscluster对象
+//  @receiver c
+//  @param obj
+//  @return *Meta
 func (c *MetaMap) Cache(obj *redisv1alpha1.RedisCluster) *Meta {
 	meta, ok := c.Load(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 	if !ok {
@@ -64,19 +70,33 @@ func (c *MetaMap) Cache(obj *redisv1alpha1.RedisCluster) *Meta {
 	return c.Get(obj)
 }
 
+// Get function
+//  @receiver c
+//  @param obj
+//  @return *Meta
 func (c *MetaMap) Get(obj *redisv1alpha1.RedisCluster) *Meta {
 	meta, _ := c.Load(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 	return meta.(*Meta)
 }
 
+// Add function
+//  @receiver c
+//  @param obj
 func (c *MetaMap) Add(obj *redisv1alpha1.RedisCluster) {
 	c.Store(getNamespacedName(obj.GetNamespace(), obj.GetName()), newCluster(obj))
 }
 
+// Del function
+//  @receiver c
+//  @param obj
 func (c *MetaMap) Del(obj *redisv1alpha1.RedisCluster) {
 	c.Delete(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 }
 
+// Update function
+//  @receiver c
+//  @param meta
+//  @param new
 func (c *MetaMap) Update(meta *Meta, new *redisv1alpha1.RedisCluster) {
 	if meta.Obj.GetGeneration() == new.GetGeneration() {
 		// Ensure initial condition is set

@@ -43,7 +43,7 @@ func (r *RedisClusterHandler) Do(rc *redisv1alpha1.RedisCluster) error {
 		if err := r.k8sServices.UpdateClusterSpec(rc.Namespace, rc); err != nil {
 			return err
 		}
-		return service.ImmediatelyNeedRequeueErr
+		return service.ErrNeedRequeueImmediately
 	}
 
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).Info("validated and no updates")

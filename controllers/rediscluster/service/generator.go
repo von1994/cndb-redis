@@ -15,7 +15,6 @@ import (
 	"github.com/von1994/cndb-redis/pkg/util"
 )
 
-
 func generateSentinelService(rc *redisv1alpha1.RedisCluster, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
 	name := util.GetSentinelName(rc)
 	namespace := rc.Namespace

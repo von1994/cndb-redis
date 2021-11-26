@@ -8,6 +8,7 @@ const (
 	promControllerSubsystem = "controller"
 )
 
+// ClusterMetrics 定义了所需prom metrics
 var ClusterMetrics = &PromMetrics{}
 
 // Instrumenter is the interface that will collect the metrics and has ability to send/expose those metrics.

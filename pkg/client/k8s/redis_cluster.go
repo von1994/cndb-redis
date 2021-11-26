@@ -45,7 +45,11 @@ func (c *ClusterOption) UpdateClusterStatus(namespace string, cluster *redisv1al
 	return nil
 }
 
-// UpdateClusterStatus implement the  Cluster.Interface
+// UpdateClusterSpec UpdateClusterStatus implement the  Cluster.Interface
+//  @receiver c 
+//  @param namespace
+//  @param cluster
+//  @return error
 func (c *ClusterOption) UpdateClusterSpec(namespace string, cluster *redisv1alpha1.RedisCluster) error {
 	err := c.client.Update(context.TODO(), cluster)
 	if err != nil {

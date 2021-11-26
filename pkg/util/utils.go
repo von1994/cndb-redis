@@ -14,18 +14,24 @@ const (
 	AnnotationClusterScoped = "cluster-scoped"
 )
 
-var isClusterScoped = true
+//var isClusterScoped = true
 
+// IsClusterScoped 返回资源是否是cluster级别
+//  @return bool
 func IsClusterScoped() bool {
-	return isClusterScoped
+	return true
 }
 
-func SetClusterScoped(namespace string) {
-	if namespace != "" {
-		isClusterScoped = false
-	}
-}
+//func SetClusterScoped(namespace string) {
+//	if namespace != "" {
+//		isClusterScoped = false
+//	}
+//}
 
+// ParseRedisMemConf  解析redis memory相关配置
+//  @param p
+//  @return string
+//  @return error
 func ParseRedisMemConf(p string) (string, error) {
 	var mul int64 = 1
 	u := strings.ToLower(p)
@@ -62,6 +68,10 @@ func ParseRedisMemConf(p string) (string, error) {
 	return strconv.FormatInt(val*mul, 10), nil
 }
 
+// GetEnvOrDefault 获取值为字符串的环境变量，如果不存在则返回默认值
+//  @param name
+//  @param defaultVal
+//  @return val
 func GetEnvOrDefault(name, defaultVal string) (val string) {
 	val = os.Getenv(name)
 	if val == "" {
@@ -70,7 +80,9 @@ func GetEnvOrDefault(name, defaultVal string) (val string) {
 	return
 }
 
-// ReplaceSymbol 将"-"替换为"_"
+// ReplaceSymbol 将字符串中"-"替换为"_"
+//  @param in
+//  @return out
 func ReplaceSymbol(in string) (out string) {
 	return strings.ReplaceAll(in, "-", "_")
 }

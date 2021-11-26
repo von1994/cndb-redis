@@ -6,6 +6,7 @@ import (
 	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 )
 
+// const
 const (
 	BaseName               = "redis"
 	SentinelName           = "-sentinel"
@@ -42,14 +43,24 @@ func GetSentinelName(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName(SentinelName, rc.Name)
 }
 
+// GenerateName 生成标准名称
+//  @param typeName
+//  @param metaName
+//  @return string
 func GenerateName(typeName, metaName string) string {
 	return fmt.Sprintf("%s%s-%s", BaseName, typeName, metaName)
 }
 
+// GetSentinelReadinessCm  生成sentinel readiness configmap名称
+//  @param rc
+//  @return string
 func GetSentinelReadinessCm(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName("-sentinel-readiness", rc.Name)
 }
 
+// GetSentinelHeadlessSvc  生成sentinel headless svc名称
+//  @param rc
+//  @return string
 func GetSentinelHeadlessSvc(rc *redisv1alpha1.RedisCluster) string {
 	return GenerateName("-sentinel-headless", rc.Name)
 }

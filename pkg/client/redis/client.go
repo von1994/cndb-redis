@@ -106,7 +106,7 @@ func (c *client) GetNumberSentinelSlavesInMemory(ip string, auth *util.AuthConfi
 	for _, slaveInfoBlob := range slaveInfoBlobs {
 		slavePriority := slaveInfoFieldByName("slave-priority", slaveInfoBlob)
 		if slavePriority == "0" {
-			nSlaves -= 1
+			nSlaves--
 		}
 	}
 
