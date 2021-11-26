@@ -46,7 +46,7 @@ func (c *ClusterOption) UpdateClusterStatus(namespace string, cluster *redisv1al
 }
 
 // UpdateClusterSpec UpdateClusterStatus implement the  Cluster.Interface
-//  @receiver c 
+//  @receiver c
 //  @param namespace
 //  @param cluster
 //  @return error
