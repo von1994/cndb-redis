@@ -21,7 +21,7 @@ tcp-keepalive 300
 daemonize no
 supervised no
 pidfile /var/run/redis.pid`
-	RedisSentinelControllerName    = "redis-sentinel-controller"
+	RedisSentinelControllerName   = "redis-sentinel-controller"
 	RedsiStandaloneControllerName = "redis-standalone-controller"
 
 	ExporterPort                 = 9121

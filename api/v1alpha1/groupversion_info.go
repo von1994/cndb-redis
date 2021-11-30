@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	RedisSentinelKind    = "RedisSentinel"
+	RedisSentinelKind   = "RedisSentinel"
 	RedisStandaloneKind = "RedisStandalone"
 )
 

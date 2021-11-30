@@ -103,7 +103,7 @@ rules:
   - apiGroups:
       - redis.lovelycat.io
     resources:
-      - RedisSentinels
+      - redissentinels
     verbs:
       - create
       - delete

@@ -169,6 +169,37 @@ func (f *Framework) WaitRedisSentinelHealthy(name string, wait, timeout time.Dur
 	}
 }
 
+// WaitRedisStandaloneHealthy wait for a status of a RedisSentinel become Healthy
+func (f *Framework) WaitRedisStandaloneHealthy(name string, wait, timeout time.Duration) (result *redisv1alpha1.RedisStandalone, err error) {
+	// wait for redis cluster status change
+	time.Sleep(wait)
+	result = &redisv1alpha1.RedisStandalone{}
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			return nil, fmt.Errorf("timeout")
+		default:
+			err = f.UtilClient.Get(context.TODO(), types.NamespacedName{
+				Namespace: f.namespace,
+				Name:      name,
+			}, result)
+			//err = f.RestClient.Get().Namespace(f.namespace).Resource("*").Name(name).Do().Into(result)
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			if len(result.Status.Conditions) == 0 {
+				time.Sleep(time.Second * 5)
+				continue
+			}
+			f.Logf("check redis cluster status, expecting Healthy, current %s", result.Status.Conditions[0].Type)
+			if result.Status.Conditions[0].Type == redisv1alpha1.ClusterConditionHealthy {
+				return
+			}
+			time.Sleep(time.Second * 5)
+		}
+	}
+}
+
 // CreateRedisSentinel creates a RedisSentinel in test namespace
 func (f *Framework) CreateRedisSentinel(spec *redisv1alpha1.RedisSentinel) *redisv1alpha1.RedisSentinel {
 	f.Logf("creating RedisSentinel %s", spec.Name)
@@ -191,12 +222,55 @@ func (f *Framework) CreateRedisSentinel(spec *redisv1alpha1.RedisSentinel) *redi
 	return result
 }
 
+func (f *Framework) CreateRedisStandalone(spec *redisv1alpha1.RedisStandalone) *redisv1alpha1.RedisStandalone {
+	f.Logf("creating RedisStandalone %s", spec.Name)
+	var err error
+	result := &redisv1alpha1.RedisStandalone{}
+	err = f.UtilClient.Get(context.TODO(), types.NamespacedName{
+		Namespace: f.namespace,
+		Name:      spec.Name,
+	}, result)
+	if errors.IsNotFound(err) {
+		err = f.UtilClient.Create(context.TODO(), spec)
+		err = f.UtilClient.Get(context.TODO(), types.NamespacedName{
+			Namespace: f.namespace,
+			Name:      spec.Name,
+		}, result)
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		return result
+	}
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	return result
+}
+
+
 // UpdateRedisSentinel update a RedisSentinel in test namespace
 func (f *Framework) UpdateRedisSentinel(spec *redisv1alpha1.RedisSentinel) *redisv1alpha1.RedisSentinel {
 	f.Logf("updating RedisSentinel %s", spec.Name)
 	err := f.UtilClient.Update(context.TODO(), spec)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	return spec
+}
+
+func (f *Framework) UpdateRedisStandalone(spec *redisv1alpha1.RedisStandalone) *redisv1alpha1.RedisStandalone {
+	f.Logf("updating RedisStandalone %s", spec.Name)
+	err := f.UtilClient.Update(context.TODO(), spec)
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	return spec
+}
+
+func (f *Framework) GetPodStatus(name, namespace string) (ready bool){
+	pod, err := f.Client.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		f.Logf("get pod %s/%s from k8s failed due to %s", namespace, name, err.Error())
+		return false
+	}
+
+	if pod.Status.Phase != v1.PodRunning {
+		return
+	}
+	ready = true
+	return
 }
 
 // CreateRedisSentinelAndWaitHealthy creates a RedisSentinel and waiting for it to become Healthy
@@ -207,10 +281,30 @@ func (f *Framework) CreateRedisSentinelAndWaitHealthy(spec *redisv1alpha1.RedisS
 	return updateResult
 }
 
+// CreateRedisStandaloneAndWaitHealthy creates a RedisStandalone and waiting for it to become Healthy
+func (f *Framework) CreateRedisStandaloneAndWaitHealthy(spec *redisv1alpha1.RedisStandalone, timeout time.Duration) *redisv1alpha1.RedisStandalone {
+	result := f.CreateRedisStandalone(spec)
+	updateResult, err := f.WaitRedisStandaloneHealthy(result.Name, 30*time.Second, timeout)
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	return updateResult
+}
+
 // DeleteRedisSentinel deletes a RedisSentinel with specified name in test namespace
 func (f *Framework) DeleteRedisSentinel(name string) {
 	f.Logf("deleting RedisSentinel %s", name)
 	result := &redisv1alpha1.RedisSentinel{}
+	err := f.UtilClient.Get(context.TODO(), types.NamespacedName{
+		Namespace: f.namespace,
+		Name:      name,
+	}, result)
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	err = f.UtilClient.Delete(context.TODO(), result)
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+}
+
+func (f *Framework) DeleteRedisStandalone(name string) {
+	f.Logf("deleting RedisStandalone %s", name)
+	result := &redisv1alpha1.RedisStandalone{}
 	err := f.UtilClient.Get(context.TODO(), types.NamespacedName{
 		Namespace: f.namespace,
 		Name:      name,

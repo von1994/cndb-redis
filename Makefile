@@ -4,6 +4,7 @@
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
+IMAGE_TAG = `git rev-parse --short HEAD`
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -36,11 +37,11 @@ IMAGE_TAG_BASE ?= lovelycat.io/cndb-redis
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= harbor.enmotech.com/cndb-redis/controller:latest
+IMG ?= harbor.enmotech.com/cndb-redis/controller:$(IMAGE_TAG)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
-E2E_IMG ?= harbor.enmotech.com/cndb-redis/e2e:latest
+E2E_IMG ?= harbor.enmotech.com/cndb-redis/e2e:$(IMAGE_TAG)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))

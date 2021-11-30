@@ -20,20 +20,20 @@ import (
 
 // RedisSentinelCheck defines the intercace able to check the correct status of a redis cluster
 type RedisSentinelCheck interface {
-	CheckRedisNumber(RedisSentinel *redisv1alpha1.RedisSentinel) error
-	CheckSentinelNumber(RedisSentinel *redisv1alpha1.RedisSentinel) error
-	EnsureSentinelReady(RedisSentinel *redisv1alpha1.RedisSentinel) error
-	CheckSentinelReadyReplicas(RedisSentinel *redisv1alpha1.RedisSentinel) error
-	CheckAllSlavesFromMaster(master string, RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
-	CheckSentinelNumberInMemory(sentinel string, RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
-	CheckSentinelSlavesNumberInMemory(sentinel string, RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	CheckRedisNumber(rc *redisv1alpha1.RedisSentinel) error
+	CheckSentinelNumber(rc *redisv1alpha1.RedisSentinel) error
+	EnsureSentinelReady(rc *redisv1alpha1.RedisSentinel) error
+	CheckSentinelReadyReplicas(rc *redisv1alpha1.RedisSentinel) error
+	CheckAllSlavesFromMaster(master string, rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	CheckSentinelNumberInMemory(sentinel string, rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	CheckSentinelSlavesNumberInMemory(sentinel string, rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
 	CheckSentinelMonitor(sentinel string, monitor string, auth *util.AuthConfig) error
-	GetMasterIP(RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) (string, error)
-	GetNumberMasters(RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) (int, error)
-	GetRedisesIPs(RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) ([]string, error)
-	GetSentinelsIPs(RedisSentinel *redisv1alpha1.RedisSentinel) ([]string, error)
-	GetMinimumRedisPodTime(RedisSentinel *redisv1alpha1.RedisSentinel) (time.Duration, error)
-	CheckRedisConfig(RedisSentinel *redisv1alpha1.RedisSentinel, addr string, auth *util.AuthConfig) error
+	GetMasterIP(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) (string, error)
+	GetNumberMasters(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) (int, error)
+	GetRedisesIPs(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) ([]string, error)
+	GetSentinelsIPs(rc *redisv1alpha1.RedisSentinel) ([]string, error)
+	GetMinimumRedisPodTime(rc *redisv1alpha1.RedisSentinel) (time.Duration, error)
+	CheckRedisConfig(rc *redisv1alpha1.RedisSentinel, addr string, auth *util.AuthConfig) error
 }
 
 var parseConfigMap = map[string]int8{
@@ -71,7 +71,7 @@ func NewRedisSentinelChecker(k8sService k8s.Services, redisClient redis.Client, 
 }
 
 // CheckRedisConfig check current redis config is same as custom config
-func (r *RedisSentinelChecker) CheckRedisConfig(RedisSentinel *redisv1alpha1.RedisSentinel, addr string, auth *util.AuthConfig) error {
+func (r *RedisSentinelChecker) CheckRedisConfig(rc *redisv1alpha1.RedisSentinel, addr string, auth *util.AuthConfig) error {
 	client := goredis.NewClient(&goredis.Options{
 		Addr:     net.JoinHostPort(addr, "6379"),
 		Password: auth.Password,
@@ -83,7 +83,7 @@ func (r *RedisSentinelChecker) CheckRedisConfig(RedisSentinel *redisv1alpha1.Red
 		return err
 	}
 
-	for key, value := range RedisSentinel.Spec.Config {
+	for key, value := range rc.Spec.Config {
 		var err error
 		if _, ok := parseConfigMap[key]; ok {
 			value, err = util.ParseRedisMemConf(value)

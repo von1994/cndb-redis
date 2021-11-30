@@ -396,7 +396,6 @@ func createRedisExporterContainer(rc *redisv1alpha1.RedisStandalone) corev1.Cont
 	return container
 }
 
-
 func generateRedisShutdownConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
 	name := redisstandalone.GetRedisShutdownConfigMapName(rc)
 	namespace := rc.Namespace

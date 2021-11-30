@@ -18,12 +18,12 @@ import (
 // RedisSentinelHeal defines the interface able to fix the problems on the redis clusters
 type RedisSentinelHeal interface {
 	MakeMaster(ip string, auth *util.AuthConfig) error
-	SetOldestAsMaster(RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
-	SetMasterOnAll(masterIP string, RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
-	NewSentinelMonitor(ip string, monitor string, RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	SetOldestAsMaster(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	SetMasterOnAll(masterIP string, rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	NewSentinelMonitor(ip string, monitor string, rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
 	RestoreSentinel(ip string, auth *util.AuthConfig) error
-	SetSentinelCustomConfig(ip string, RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
-	SetRedisCustomConfig(ip string, RedisSentinel *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	SetSentinelCustomConfig(ip string, rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
+	SetRedisCustomConfig(ip string, rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error
 }
 
 // RedisSentinelHealer is our implementation of RedisSentinelCheck intercace

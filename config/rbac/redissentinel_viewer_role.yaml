@@ -2,12 +2,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: RedisSentinel-viewer-role
+  name: redissentinel-viewer-role
 rules:
 - apiGroups:
   - redis.lovelycat.io
   resources:
-  - RedisSentinels
+  - redissentinels
   verbs:
   - get
   - list
@@ -15,6 +15,6 @@ rules:
 - apiGroups:
   - redis.lovelycat.io
   resources:
-  - RedisSentinels/status
+  - redissentinels/status
   verbs:
   - get

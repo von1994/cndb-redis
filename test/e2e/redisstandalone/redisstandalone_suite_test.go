@@ -1,4 +1,4 @@
-package RedisSentinel_test
+package redisstandalone_test
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ var f *e2e.Framework
 
 func TestRedisSentinel(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "RedisSentinel Suite")
+	ginkgo.RunSpecs(t, "RedisStandalone Suite")
 }
 
 var _ = ginkgo.BeforeSuite(func() {

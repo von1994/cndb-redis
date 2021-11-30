@@ -4,7 +4,7 @@ metadata:
   annotations:
     # if your operator run as cluster-scoped, add this annotations
     lovelycat.io/scope: cluster-scoped
-  name: RedisSentinel-sample
+  name: redissentinel-sample
 spec:
   # Add fields here
   size: 3

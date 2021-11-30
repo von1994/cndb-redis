@@ -12,7 +12,7 @@ const (
 	SentinelRoleName       = "sentinel"
 	SentinelConfigFileName = "sentinel.conf"
 	RedisConfigFileName    = "redis.conf"
-	RedisName              = "-cluster"
+	RedisName              = "-sentinel"
 	RedisShutdownName      = "r-s"
 	RedisRoleName          = "redis"
 	AppLabel               = "redis-cluster"
