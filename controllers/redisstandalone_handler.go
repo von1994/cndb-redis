@@ -74,6 +74,22 @@ func (r *StandaloneHandler) Do(rc *redisv1alpha1.RedisStandalone) error {
 	r.eventsCli.CheckCluster(rc)
 	if err := r.CheckAndHeal(meta); err != nil {
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
+		if err.Error() != common.NeedRequeueMsg {
+			r.eventsCli.FailedCluster(rc, err.Error())
+			rc.Status.SetFailedCondition(err.Error())
+			if updateFailedErr := r.k8sServices.UpdateStandaloneStatus(rc.Namespace, rc); updateFailedErr != nil {
+				return updateFailedErr
+			}
+			return err
+		}
+		status := rc.Status.Conditions
+		if len(status) > 0 && status[0].Type == redisv1alpha1.ClusterConditionHealthy {
+			r.eventsCli.CreateCluster(rc)
+			rc.Status.SetCreateCondition("redis server or sentinel server be removed by user, restart")
+			if updateFailedErr := r.k8sServices.UpdateStandaloneStatus(rc.Namespace, rc); updateFailedErr != nil {
+				return updateFailedErr
+			}
+		}
 		return err
 	}
 
@@ -104,10 +120,10 @@ func (r *StandaloneHandler) updateStatus(meta *cache.Meta) error {
 			r.eventsCli.SlaveRemove(rc, meta.Message)
 			rc.Status.SetScalingDownCondition(meta.Message)
 		case redisv1alpha1.ClusterConditionUpgrading:
-			r.eventsCli.UpdateClusterStatus(rc, meta.Message)
+			r.eventsCli.UpdateSentinelStatus(rc, meta.Message)
 			rc.Status.SetUpgradingCondition(meta.Message)
 		default:
-			r.eventsCli.UpdateClusterStatus(rc, meta.Message)
+			r.eventsCli.UpdateSentinelStatus(rc, meta.Message)
 			rc.Status.SetUpdatingCondition(meta.Message)
 		}
 		return r.k8sServices.UpdateStandaloneStatus(rc.Namespace, rc)
@@ -138,7 +154,7 @@ func (r *StandaloneHandler) setRedisConfig(meta *cache.Meta) error {
 	for _, rip := range redises {
 		if err := r.rcChecker.CheckRedisConfig(meta.Obj, rip, meta.Auth); err != nil {
 			r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).Info(err.Error())
-			r.eventsCli.UpdateClusterStatus(meta.Obj, "set custom config for redis server")
+			r.eventsCli.UpdateSentinelStatus(meta.Obj, "set custom config for redis server")
 			if err := r.rcHealer.SetRedisCustomConfig(rip, meta.Obj, meta.Auth); err != nil {
 				return err
 			}
@@ -148,6 +164,12 @@ func (r *StandaloneHandler) setRedisConfig(meta *cache.Meta) error {
 }
 
 func (r *StandaloneHandler) CheckAndHeal(meta *cache.Meta) error {
+	if err := r.rcChecker.CheckRedisNumber(meta.Obj); err != nil {
+		r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).V(2).Info("number of redis mismatch, this could be for a change on the statefulset")
+		r.eventsCli.UpdateSentinelStatus(meta.Obj, "wait for all redis server start")
+		return common.ErrNeedRequeue
+	}
+
 	if err := r.setRedisConfig(meta); err != nil {
 		return err
 	}

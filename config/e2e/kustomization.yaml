@@ -21,6 +21,6 @@ resources:
 images:
 - name: e2e
   newName: harbor.enmotech.com/cndb-redis/e2e
-  newTag: 36d612f
+  newTag: e0f8a7e
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

@@ -41,7 +41,7 @@ func (r *SentinelHandler) Do(rc *redisv1alpha1.RedisSentinel) error {
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
 	} else if modified {
-		if err := r.k8sServices.UpdateClusterSpec(rc.Namespace, rc); err != nil {
+		if err := r.k8sServices.UpdateSentinelSpec(rc.Namespace, rc); err != nil {
 			return err
 		}
 		return common.ErrNeedRequeueImmediately
@@ -71,7 +71,7 @@ func (r *SentinelHandler) Do(rc *redisv1alpha1.RedisSentinel) error {
 	if err := r.Ensure(meta.Obj, labels, oRefs); err != nil {
 		r.eventsCli.FailedCluster(rc, err.Error())
 		rc.Status.SetFailedCondition(err.Error())
-		if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+		if updateFailedErr := r.k8sServices.UpdateSentinelStatus(rc.Namespace, rc); updateFailedErr != nil {
 			return updateFailedErr
 		}
 		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
@@ -85,7 +85,7 @@ func (r *SentinelHandler) Do(rc *redisv1alpha1.RedisSentinel) error {
 		if err.Error() != common.NeedRequeueMsg {
 			r.eventsCli.FailedCluster(rc, err.Error())
 			rc.Status.SetFailedCondition(err.Error())
-			if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+			if updateFailedErr := r.k8sServices.UpdateSentinelStatus(rc.Namespace, rc); updateFailedErr != nil {
 				return updateFailedErr
 			}
 			return err
@@ -95,7 +95,7 @@ func (r *SentinelHandler) Do(rc *redisv1alpha1.RedisSentinel) error {
 		if len(status) > 0 && status[0].Type == redisv1alpha1.ClusterConditionHealthy {
 			r.eventsCli.CreateCluster(rc)
 			rc.Status.SetCreateCondition("redis server or sentinel server be removed by user, restart")
-			if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+			if updateFailedErr := r.k8sServices.UpdateSentinelStatus(rc.Namespace, rc); updateFailedErr != nil {
 				return updateFailedErr
 			}
 		}
@@ -105,7 +105,7 @@ func (r *SentinelHandler) Do(rc *redisv1alpha1.RedisSentinel) error {
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).V(2).Info("SetReadyCondition...")
 	r.eventsCli.HealthCluster(rc)
 	rc.Status.SetReadyCondition("Cluster ok")
-	if updateFailedErr := r.k8sServices.UpdateClusterStatus(rc.Namespace, rc); updateFailedErr != nil {
+	if updateFailedErr := r.k8sServices.UpdateSentinelStatus(rc.Namespace, rc); updateFailedErr != nil {
 		return updateFailedErr
 	}
 	metrics.ClusterMetrics.SetClusterOK(rc.Namespace, rc.Name)
@@ -130,13 +130,13 @@ func (r *SentinelHandler) updateStatus(meta *cache.Meta) (err error) {
 			r.eventsCli.SlaveRemove(rc, meta.Message)
 			rc.Status.SetScalingDownCondition(meta.Message)
 		case redisv1alpha1.ClusterConditionUpgrading:
-			r.eventsCli.UpdateClusterStatus(rc, meta.Message)
+			r.eventsCli.UpdateSentinelStatus(rc, meta.Message)
 			rc.Status.SetUpgradingCondition(meta.Message)
 		default:
-			r.eventsCli.UpdateClusterStatus(rc, meta.Message)
+			r.eventsCli.UpdateSentinelStatus(rc, meta.Message)
 			rc.Status.SetUpdatingCondition(meta.Message)
 		}
-		return r.k8sServices.UpdateClusterStatus(rc.Namespace, rc)
+		return r.k8sServices.UpdateSentinelStatus(rc.Namespace, rc)
 	}
 	return nil
 }
@@ -169,7 +169,7 @@ func (r *SentinelHandler) createOwnerReferences(rc *redisv1alpha1.RedisSentinel)
 func (r *SentinelHandler) CheckAndHeal(meta *cache.Meta) error {
 	if err := r.rcChecker.CheckRedisNumber(meta.Obj); err != nil {
 		r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).V(2).Info("number of redis mismatch, this could be for a change on the statefulset")
-		r.eventsCli.UpdateClusterStatus(meta.Obj, "wait for all redis server start")
+		r.eventsCli.UpdateSentinelStatus(meta.Obj, "wait for all redis server start")
 		return common.ErrNeedRequeue
 	}
 	if err := r.rcChecker.CheckSentinelNumber(meta.Obj); err != nil {
@@ -183,7 +183,7 @@ func (r *SentinelHandler) CheckAndHeal(meta *cache.Meta) error {
 	}
 	switch nMasters {
 	case 0:
-		r.eventsCli.UpdateClusterStatus(meta.Obj, "set master")
+		r.eventsCli.UpdateSentinelStatus(meta.Obj, "set master")
 		r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).V(2).Info("no master find, fixing...")
 		redisesIP, err := r.rcChecker.GetRedisesIPs(meta.Obj, meta.Auth)
 		if err != nil {
@@ -279,7 +279,7 @@ func (r *SentinelHandler) setRedisConfig(meta *cache.Meta) error {
 	for _, rip := range redises {
 		if err := r.rcChecker.CheckRedisConfig(meta.Obj, rip, meta.Auth); err != nil {
 			r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).Info(err.Error())
-			r.eventsCli.UpdateClusterStatus(meta.Obj, "set custom config for redis server")
+			r.eventsCli.UpdateSentinelStatus(meta.Obj, "set custom config for redis server")
 			if err := r.rcHealer.SetRedisCustomConfig(rip, meta.Obj, meta.Auth); err != nil {
 				return err
 			}

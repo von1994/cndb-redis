@@ -106,7 +106,7 @@ var _ = ginkgo.Describe("RedisStandalone", func() {
 			})
 
 			ginkgo.AfterEach(func() {
-				f.DeleteRedisSentinel(rc.Name)
+				f.DeleteRedisStandalone(rc.Name)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)

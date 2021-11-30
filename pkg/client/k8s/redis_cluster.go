@@ -10,10 +10,10 @@ import (
 
 // Cluster the client that knows how to interact with kubernetes to manage RedisSentinel
 type Cluster interface {
-	// UpdateClusterStatus update the RedisSentinel Status
-	UpdateClusterStatus(namespace string, cluster *redisv1alpha1.RedisSentinel) error
-	// UpdateClusterSpec update the RedisSentinel Spec
-	UpdateClusterSpec(namespace string, cluster *redisv1alpha1.RedisSentinel) error
+	// UpdateSentinelStatus update the RedisSentinel Status
+	UpdateSentinelStatus(namespace string, cluster *redisv1alpha1.RedisSentinel) error
+	// UpdateSentinelSpec update the RedisSentinel Spec
+	UpdateSentinelSpec(namespace string, cluster *redisv1alpha1.RedisSentinel) error
 	UpdateStandaloneStatus(namespace string, cluster *redisv1alpha1.RedisStandalone) error
 	UpdateStandaloneSpec(namespace string, cluster *redisv1alpha1.RedisStandalone) error
 }
@@ -33,8 +33,8 @@ func NewCluster(kubeClient client.Client, logger logr.Logger) Cluster {
 	}
 }
 
-// UpdateClusterStatus implement the  Cluster.Interface
-func (c *ClusterOption) UpdateClusterStatus(namespace string, cluster *redisv1alpha1.RedisSentinel) error {
+// UpdateSentinelStatus implement the  Cluster.Interface
+func (c *ClusterOption) UpdateSentinelStatus(namespace string, cluster *redisv1alpha1.RedisSentinel) error {
 	cluster.Status.DescConditionsByTime()
 	err := c.client.Status().Update(context.TODO(), cluster)
 	if err != nil {
@@ -47,12 +47,12 @@ func (c *ClusterOption) UpdateClusterStatus(namespace string, cluster *redisv1al
 	return nil
 }
 
-// UpdateClusterSpec UpdateClusterStatus implement the  Cluster.Interface
+// UpdateSentinelSpec implement the  Cluster.Interface
 //  @receiver c
 //  @param namespace
 //  @param cluster
 //  @return error
-func (c *ClusterOption) UpdateClusterSpec(namespace string, cluster *redisv1alpha1.RedisSentinel) error {
+func (c *ClusterOption) UpdateSentinelSpec(namespace string, cluster *redisv1alpha1.RedisSentinel) error {
 	err := c.client.Update(context.TODO(), cluster)
 	if err != nil {
 		c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).

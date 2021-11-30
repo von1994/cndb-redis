@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-logr/logr"
 	goredis "github.com/go-redis/redis"
@@ -16,10 +17,12 @@ import (
 
 // RedisStandaloneCheck defines the intercace able to check the correct status of a redis cluster
 type RedisStandaloneCheck interface {
+	CheckRedisNumber(rc *redisv1alpha1.RedisStandalone) error
 	CheckRedisConfig(rc *redisv1alpha1.RedisStandalone, addr string, auth *util.AuthConfig) error
-	SetRedisCustomConfig(ip string, rc *redisv1alpha1.RedisStandalone, auth *util.AuthConfig) error
 	GetRedisesIPs(rc *redisv1alpha1.RedisStandalone, auth *util.AuthConfig) ([]string, error)
 }
+
+var _ RedisStandaloneCheck = &RedisStandaloneChecker{}
 
 // RedisStandaloneChecker is our implementation of RedisSentinelCheck intercace
 type RedisStandaloneChecker struct {
@@ -78,4 +81,18 @@ func (r *RedisStandaloneChecker) CheckRedisConfig(rc *redisv1alpha1.RedisStandal
 	}
 	return nil
 
+}
+
+func (r *RedisStandaloneChecker) CheckRedisNumber(rc *redisv1alpha1.RedisStandalone) error {
+	ss, err := r.k8sService.GetStatefulSet(rc.Namespace, redisstandalone.GetRedisName(rc))
+	if err != nil {
+		return err
+	}
+	if rc.Spec.Size != *ss.Spec.Replicas {
+		return errors.New("number of redis pods differ from specification")
+	}
+	if rc.Spec.Size != ss.Status.ReadyReplicas {
+		return errors.New("waiting all of redis pods become ready")
+	}
+	return nil
 }
