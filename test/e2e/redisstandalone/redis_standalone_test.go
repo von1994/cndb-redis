@@ -217,7 +217,7 @@ func newRedisStandaloneSpec(name string) *redisv1alpha1.RedisStandalone {
 			},
 		},
 		Spec: redisv1alpha1.RedisStandaloneSpec{
-			Size:  3,
+			Size:  1,
 			Image: redis5,
 			Config: map[string]string{
 				"hz":         "11",
@@ -228,20 +228,12 @@ func newRedisStandaloneSpec(name string) *redisv1alpha1.RedisStandalone {
 }
 
 func wirteToMaster(rc *redisv1alpha1.RedisStandalone, auth *util.AuthConfig) {
-	ginkgo.By("write some key to redis")
-
-	redisSvc, err := f.K8sService.GetService(f.Namespace(), redisstandalone.GetRedisName(rc))
+	ginkgo.By("write some key to redis using svc IP")
+	svc, err := f.K8sService.GetService(rc.Namespace, redisstandalone.GetRedisName(rc))
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-	master := getRedisMasterClusterIP(redisSvc.Spec.ClusterIP, auth)
+	master := svc.Spec.ClusterIP
 	masterClient := newRedisClient(master, "6379", auth)
 	writeKey(masterClient)
-}
-
-func getRedisMasterClusterIP(addr string, auth *util.AuthConfig) string {
-	master, err := f.RedisClient.GetSentinelMonitor(addr, auth)
-	gomega.Expect(err).NotTo(gomega.HaveOccurred())
-	return net.ParseIP(master).String()
 }
 
 func newRedisClient(addr, port string, auth *util.AuthConfig) *redis.Client {
@@ -272,7 +264,6 @@ func getRedisStandaloneNodeIPs(statefulSetName string) []string {
 	}
 	return podIPs
 }
-
 
 func checkRedisConfig(rc *redisv1alpha1.RedisStandalone, auth *util.AuthConfig) {
 	nodes := getRedisStandaloneNodeIPs(redisstandalone.GetRedisName(rc))
@@ -352,5 +343,3 @@ func createPvcRedisStandalone(name string) *redisv1alpha1.RedisStandalone {
 	}
 	return f.CreateRedisStandaloneAndWaitHealthy(spec, defaultTimeout)
 }
-
-

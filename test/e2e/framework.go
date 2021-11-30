@@ -243,7 +243,6 @@ func (f *Framework) CreateRedisStandalone(spec *redisv1alpha1.RedisStandalone) *
 	return result
 }
 
-
 // UpdateRedisSentinel update a RedisSentinel in test namespace
 func (f *Framework) UpdateRedisSentinel(spec *redisv1alpha1.RedisSentinel) *redisv1alpha1.RedisSentinel {
 	f.Logf("updating RedisSentinel %s", spec.Name)
@@ -259,7 +258,7 @@ func (f *Framework) UpdateRedisStandalone(spec *redisv1alpha1.RedisStandalone) *
 	return spec
 }
 
-func (f *Framework) GetPodStatus(name, namespace string) (ready bool){
+func (f *Framework) GetPodStatus(name, namespace string) (ready bool) {
 	pod, err := f.Client.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		f.Logf("get pod %s/%s from k8s failed due to %s", namespace, name, err.Error())

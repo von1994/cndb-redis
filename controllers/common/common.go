@@ -61,6 +61,23 @@ var (
 	DefaultLabels = map[string]string{
 		redisv1alpha1.LabelManagedByKey: redisv1alpha1.OperatorName,
 	}
+	ParseConfigMap = map[string]int8{
+		"maxmemory":                  0,
+		"proto-max-bulk-len":         0,
+		"client-query-buffer-limit":  0,
+		"repl-backlog-size":          0,
+		"auto-aof-rewrite-min-size":  0,
+		"active-defrag-ignore-bytes": 0,
+		"hash-max-ziplist-entries":   0,
+		"hash-max-ziplist-value":     0,
+		"stream-node-max-bytes":      0,
+		"set-max-intset-entries":     0,
+		"zset-max-ziplist-entries":   0,
+		"zset-max-ziplist-value":     0,
+		"hll-sparse-max-bytes":       0,
+		// TODO parse client-output-buffer-limit
+		//"client-output-buffer-limit": 0,
+	}
 )
 
 func init() {

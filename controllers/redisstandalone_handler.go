@@ -130,7 +130,27 @@ func (r *StandaloneHandler) getLabels(rc *redisv1alpha1.RedisStandalone) map[str
 	return util.MergeLabels(common.DefaultLabels, dynLabels, rc.Labels)
 }
 
+func (r *StandaloneHandler) setRedisConfig(meta *cache.Meta) error {
+	redises, err := r.rcChecker.GetRedisesIPs(meta.Obj, meta.Auth)
+	if err != nil {
+		return err
+	}
+	for _, rip := range redises {
+		if err := r.rcChecker.CheckRedisConfig(meta.Obj, rip, meta.Auth); err != nil {
+			r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).Info(err.Error())
+			r.eventsCli.UpdateClusterStatus(meta.Obj, "set custom config for redis server")
+			if err := r.rcHealer.SetRedisCustomConfig(rip, meta.Obj, meta.Auth); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (r *StandaloneHandler) CheckAndHeal(meta *cache.Meta) error {
+	if err := r.setRedisConfig(meta); err != nil {
+		return err
+	}
 	return nil
 }
 

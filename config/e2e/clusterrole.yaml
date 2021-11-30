@@ -104,6 +104,7 @@ rules:
       - redis.lovelycat.io
     resources:
       - redissentinels
+      - redisstandalones
     verbs:
       - create
       - delete
@@ -115,13 +116,15 @@ rules:
   - apiGroups:
       - redis.lovelycat.io
     resources:
-      - RedisSentinels/finalizers
+      - redissentinels/finalizers
+      - redisstandalones/finalizers
     verbs:
       - update
   - apiGroups:
       - redis.lovelycat.io
     resources:
-      - RedisSentinels/status
+      - redissentinels/status
+      - redisstandalones/status
     verbs:
       - get
       - patch
