@@ -3,11 +3,11 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"github.com/von1994/cndb-redis/controllers/rediscluster/service"
+	"github.com/von1994/cndb-redis/controllers/common"
 	"time"
 
 	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
-	"github.com/von1994/cndb-redis/controllers/rediscluster/clustercache"
+	"github.com/von1994/cndb-redis/controllers/rediscluster/cache"
 	"github.com/von1994/cndb-redis/pkg/util"
 )
 
@@ -26,11 +26,11 @@ const (
 // All sentinels points to the same redis master
 // Sentinel has not death nodes
 // Sentinel knows the correct slave number
-func (r *RedisClusterHandler) CheckAndHeal(meta *clustercache.Meta) error {
+func (r *RedisClusterHandler) CheckAndHeal(meta *cache.Meta) error {
 	if err := r.rcChecker.CheckRedisNumber(meta.Obj); err != nil {
 		r.logger.WithValues("namespace", meta.Obj.Namespace, "name", meta.Obj.Name).V(2).Info("number of redis mismatch, this could be for a change on the statefulset")
 		r.eventsCli.UpdateClusterStatus(meta.Obj, "wait for all redis server start")
-		return service.ErrNeedRequeue
+		return common.ErrNeedRequeue
 	}
 	if err := r.rcChecker.CheckSentinelNumber(meta.Obj); err != nil {
 		r.eventsCli.FailedCluster(meta.Obj, err.Error())
@@ -131,7 +131,7 @@ func (r *RedisClusterHandler) CheckAndHeal(meta *clustercache.Meta) error {
 	return nil
 }
 
-func (r *RedisClusterHandler) setRedisConfig(meta *clustercache.Meta) error {
+func (r *RedisClusterHandler) setRedisConfig(meta *cache.Meta) error {
 	redises, err := r.rcChecker.GetRedisesIPs(meta.Obj, meta.Auth)
 	if err != nil {
 		return err
@@ -149,8 +149,8 @@ func (r *RedisClusterHandler) setRedisConfig(meta *clustercache.Meta) error {
 }
 
 // TODO do as set redis config
-func (r *RedisClusterHandler) setSentinelConfig(meta *clustercache.Meta, sentinels []string) error {
-	if meta.State == clustercache.Check {
+func (r *RedisClusterHandler) setSentinelConfig(meta *cache.Meta, sentinels []string) error {
+	if meta.State == cache.Check {
 		return nil
 	}
 

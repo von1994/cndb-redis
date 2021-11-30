@@ -12,8 +12,10 @@ import (
 type Cluster interface {
 	// UpdateClusterStatus update the RedisCluster Status
 	UpdateClusterStatus(namespace string, cluster *redisv1alpha1.RedisCluster) error
-	// UpdateClusterStatus update the RedisCluster Spec
+	// UpdateClusterSpec update the RedisCluster Spec
 	UpdateClusterSpec(namespace string, cluster *redisv1alpha1.RedisCluster) error
+	UpdateStandaloneStatus(namespace string, cluster *redisv1alpha1.RedisStandalone) error
+	UpdateStandaloneSpec(namespace string, cluster *redisv1alpha1.RedisStandalone) error
 }
 
 // ClusterOption is the RedisCluster client that using API calls to kubernetes.
@@ -59,5 +61,30 @@ func (c *ClusterOption) UpdateClusterSpec(namespace string, cluster *redisv1alph
 	}
 	c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
 		V(3).Info("redisClusterSpec updated")
+	return nil
+}
+
+func (c *ClusterOption) UpdateStandaloneStatus(namespace string, cluster *redisv1alpha1.RedisStandalone) error {
+	cluster.Status.DescConditionsByTime()
+	err := c.client.Status().Update(context.TODO(), cluster)
+	if err != nil {
+		c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
+			Error(err, "redisStandaloneStatus")
+		return err
+	}
+	c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
+		V(3).Info("redisStandaloneStatus updated")
+	return nil
+}
+
+func (c *ClusterOption) UpdateStandaloneSpec(namespace string, cluster *redisv1alpha1.RedisStandalone) error {
+	err := c.client.Update(context.TODO(), cluster)
+	if err != nil {
+		c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
+			Error(err, "redisStandaloneSpec")
+		return err
+	}
+	c.logger.WithValues("namespace", namespace, "cluster", cluster.Name, "conditions", cluster.Status.Conditions).
+		V(3).Info("redisStandaloneSpec updated")
 	return nil
 }

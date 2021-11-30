@@ -104,3 +104,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - redis.lovelycat.io
+  resources:
+  - redisstandalones
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - redis.lovelycat.io
+  resources:
+  - redisstandalones/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - redis.lovelycat.io
+  resources:
+  - redisstandalones/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -1,4 +1,4 @@
-package clustercache
+package cache
 
 //
 //import (

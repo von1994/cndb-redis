@@ -1,0 +1,10 @@
+apiVersion: redis.lovelycat.io/v1alpha1
+kind: RedisStandalone
+metadata:
+  annotations:
+    # if your operator run as cluster-scoped, add this annotations
+    lovelycat.io/scope: cluster-scoped
+  name: redisstandalone-sample
+spec:
+  # Add fields here
+  size: 2

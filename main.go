@@ -79,12 +79,16 @@ func main() {
 	}
 
 	// RedisCluster Reconciler
-	if err = (controllers.NewReconciler(mgr)).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "RedisCluster")
+	if err = (controllers.NewRedisClusterReconciler(mgr)).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create redis-cluster controller", "controller", "RedisCluster")
 		os.Exit(1)
 	}
 
-	//+kubebuilder:scaffold:builder
+	// RedisStandalone Reconciler
+	if err = (controllers.NewRedisStandaloneReconciler(mgr)).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create redis-standalone controller", "controller", "RedisStandalone")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

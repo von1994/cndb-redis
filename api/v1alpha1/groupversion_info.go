@@ -25,7 +25,8 @@ import (
 )
 
 const (
-	Kind = "RedisCluster"
+	RedisClusterKind    = "RedisCluster"
+	RedisStandaloneKind = "RedisStandalone"
 )
 
 var (

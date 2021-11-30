@@ -1,6 +1,7 @@
 package util
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"strconv"
 	"strings"
@@ -85,4 +86,20 @@ func GetEnvOrDefault(name, defaultVal string) (val string) {
 //  @return out
 func ReplaceSymbol(in string) (out string) {
 	return strings.ReplaceAll(in, "-", "_")
+}
+
+// ShouldManage 通过annotation中的标签来判断是否处理该资源
+//  @param meta
+//  @return bool
+func ShouldManage(meta metav1.Object) bool {
+	if v, ok := meta.GetAnnotations()[AnnotationScope]; ok {
+		if IsClusterScoped() {
+			return v == AnnotationClusterScoped
+		}
+	} else {
+		if !IsClusterScoped() {
+			return true
+		}
+	}
+	return false
 }

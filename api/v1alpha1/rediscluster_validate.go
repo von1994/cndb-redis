@@ -9,19 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-const (
-	maxNameLength = 48
-
-	defaultRedisNumber    = 3
-	defaultSentinelNumber = 3
-	defaultRedisImage     = "harbor.enmotech.com/cndb-redis/redis:5.0.4-alpine"
-
-	defaultRedisExporterImage = "harbor.enmotech.com/cndb-redis/redis-exporter:1.31.4"
-	defaultImagePullPolicy    = "IfNotPresent"
-
-	defaultSlavePriority = "1"
-)
-
 var (
 	defaultSentinelCustomConfig = []string{"down-after-milliseconds 5000", "failover-timeout 10000"}
 )
@@ -79,28 +66,6 @@ func (r *RedisCluster) Validate() (bool, error) {
 	}
 
 	return !reflect.DeepEqual(r, rCopy), nil
-}
-
-func enablePersistence(config map[string]string) {
-	setConfigMapIfNotExist("appendonly", "yes", config)
-	setConfigMapIfNotExist("auto-aof-rewrite-min-size", "536870912", config)
-	setConfigMapIfNotExist("auto-aof-rewrite-percentage", "100", config)
-	setConfigMapIfNotExist("repl-backlog-size", "62914560", config)
-	setConfigMapIfNotExist("repl-diskless-sync", "yes", config)
-	setConfigMapIfNotExist("aof-load-truncated", "yes", config)
-	setConfigMapIfNotExist("stop-writes-on-bgsave-error", "no", config)
-	setConfigMapIfNotExist("save", "900 1 300 10", config)
-}
-
-func setConfigMapIfNotExist(key, value string, config map[string]string) {
-	if _, ok := config[key]; !ok {
-		config[key] = value
-	}
-}
-
-func disablePersistence(config map[string]string) {
-	config["appendonly"] = "no"
-	config["save"] = ""
 }
 
 func defaultSentinelResource() v1.ResourceRequirements {
