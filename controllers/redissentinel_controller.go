@@ -20,10 +20,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/von1994/cndb-redis/controllers/common"
-	"github.com/von1994/cndb-redis/controllers/redisstandalone/cache"
-	"github.com/von1994/cndb-redis/controllers/redisstandalone/service"
+	"github.com/von1994/cndb-redis/controllers/redissentinel/cache"
+	"github.com/von1994/cndb-redis/controllers/redissentinel/service"
 	"github.com/von1994/cndb-redis/pkg/client/k8s"
 	"github.com/von1994/cndb-redis/pkg/client/redis"
+	"github.com/von1994/cndb-redis/pkg/metrics"
 	"github.com/von1994/cndb-redis/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -33,25 +34,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 )
 
-// RedisStandaloneReconciler reconciles a RedisStandalone object
-type RedisStandaloneReconciler struct {
-	client.Client
+// RedisSentinelReconciler reconciles a RedisSentinel object
+type RedisSentinelReconciler struct {
+	Client  client.Client
 	Scheme  *runtime.Scheme
-	handler *StandaloneHandler
+	handler *SentinelHandler
 }
 
-var _ reconcile.Reconciler = &RedisStandaloneReconciler{}
+var _ reconcile.Reconciler = &RedisSentinelReconciler{}
 
-// NewRedisStandaloneReconciler returns a new reconcile.Reconciler
-func NewRedisStandaloneReconciler(mgr manager.Manager) *RedisStandaloneReconciler {
+// NewRedisSentinelReconciler returns a new reconcile.Reconciler
+func NewRedisSentinelReconciler(mgr manager.Manager) *RedisSentinelReconciler {
 	// Create kubernetes service.
 	k8sService := k8s.New(mgr.GetClient(), log.Log)
 
@@ -59,26 +59,26 @@ func NewRedisStandaloneReconciler(mgr manager.Manager) *RedisStandaloneReconcile
 	redisClient := redis.New()
 
 	// Create internal services.
-	rcService := service.NewRedisStandaloneKubeClient(k8sService, log.Log)
-	rcChecker := service.NewRedisStandaloneChecker(k8sService, redisClient, log.Log)
-	rcHealer := service.NewRedisStandaloneHealer(k8sService, redisClient, log.Log)
+	rcService := service.NewRedisSentinelKubeClient(k8sService, log.Log)
+	rcChecker := service.NewRedisSentinelChecker(k8sService, redisClient, log.Log)
+	rcHealer := service.NewRedisSentinelHealer(k8sService, redisClient, log.Log)
 
-	handler := &StandaloneHandler{
+	handler := &SentinelHandler{
 		k8sServices: k8sService,
 		rcService:   rcService,
 		rcChecker:   rcChecker,
 		rcHealer:    rcHealer,
 		metaCache:   new(cache.MetaMap),
-		eventsCli:   k8s.NewEvent(mgr.GetEventRecorderFor(common.RedsiStandaloneControllerName), log.Log),
+		eventsCli:   k8s.NewEvent(mgr.GetEventRecorderFor(common.RedisSentinelControllerName), log.Log),
 		logger:      log.Log,
 	}
 
-	return &RedisStandaloneReconciler{Client: mgr.GetClient(), Scheme: mgr.GetScheme(), handler: handler}
+	return &RedisSentinelReconciler{Client: mgr.GetClient(), Scheme: mgr.GetScheme(), handler: handler}
 }
 
-//+kubebuilder:rbac:groups=redis.lovelycat.io,resources=redisstandalones,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=redis.lovelycat.io,resources=redisstandalones/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=redis.lovelycat.io,resources=redisstandalones/finalizers,verbs=update
+//+kubebuilder:rbac:groups=redis.lovelycat.io,resources=RedisSentinels,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=redis.lovelycat.io,resources=RedisSentinels/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=redis.lovelycat.io,resources=RedisSentinels/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
@@ -95,18 +95,21 @@ func NewRedisStandaloneReconciler(mgr manager.Manager) *RedisStandaloneReconcile
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
-func (r *RedisStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *RedisSentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
 	reqLogger := log.Log.WithValues("Request.Namespace", req.Namespace, "Request.Name", req.Name)
-	reqLogger.Info("Reconciling RedisStandalone")
+	reqLogger.Info("Reconciling RedisSentinel")
 
-	// Fetch the RedisStandalone instance
-	instance := &redisv1alpha1.RedisStandalone{}
+	// Fetch the RedisSentinel instance
+	instance := &redisv1alpha1.RedisSentinel{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			reqLogger.Info("RedisStandalone delete")
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			reqLogger.Info("RedisSentinel delete")
 			instance.Namespace = req.NamespacedName.Namespace
 			instance.Name = req.NamespacedName.Name
 			r.handler.metaCache.Del(instance)
@@ -116,27 +119,33 @@ func (r *RedisStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	reqLogger.V(5).Info(fmt.Sprintf("RedisStandalone Spec:\n %+v", instance.Spec))
+	reqLogger.V(5).Info(fmt.Sprintf("RedisSentinel Spec:\n %+v", instance.Spec))
 
 	if err = r.handler.Do(instance); err != nil {
 		switch err.Error() {
 		case common.NeedRequeueImmediatelyMsg:
 			return reconcile.Result{Requeue: true}, nil
 		case common.NeedRequeueMsg:
-			return reconcile.Result{RequeueAfter: time.Duration(common.ReconcileTime) * time.Second}, nil
+			return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
 		default:
 			reqLogger.Error(err, "Reconcile handler")
 			return reconcile.Result{}, err
 		}
 	}
 
+	if err = r.handler.rcChecker.CheckSentinelReadyReplicas(instance); err != nil {
+		reqLogger.Info(err.Error())
+		return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
+	}
+
 	return ctrl.Result{RequeueAfter: time.Duration(common.ReconcileTime) * time.Second}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *RedisStandaloneReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *RedisSentinelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	pred := predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
+			// returns false if RedisSentinel is ignored (not managed) by this operator.
 			if !util.ShouldManage(e.Object) {
 				return false
 			}
@@ -144,14 +153,17 @@ func (r *RedisStandaloneReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			return true
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
+			// returns false if RedisSentinel is ignored (not managed) by this operator.
 			if !util.ShouldManage(e.Object) {
 				return false
 			}
 			log.Log.WithValues("namespace", e.Object.GetNamespace(), "name", e.Object.GetName()).Info("Call DeleteFunc")
+			metrics.ClusterMetrics.DeleteCluster(e.Object.GetNamespace(), e.Object.GetName())
 			// Evaluates to false if the object has been confirmed deleted.
 			return !e.DeleteStateUnknown
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
+			// returns false if RedisSentinel is ignored (not managed) by this operator.
 			if !util.ShouldManage(e.ObjectNew) {
 				return false
 			}
@@ -166,9 +178,8 @@ func (r *RedisStandaloneReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		},
 		GenericFunc: nil,
 	}
-
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&redisv1alpha1.RedisStandalone{}).
+		For(&redisv1alpha1.RedisSentinel{}).
 		WithEventFilter(pred).
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: common.MaxConcurrentReconciles,

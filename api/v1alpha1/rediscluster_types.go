@@ -24,9 +24,9 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// RedisClusterSpec defines the desired state of RedisCluster
+// RedisSentinelSpec defines the desired state of RedisSentinel
 // +k8s:openapi-gen=true
-type RedisClusterSpec struct {
+type RedisSentinelSpec struct {
 	Size               int32                         `json:"size,omitempty"`
 	Resources          corev1.ResourceRequirements   `json:"resources,omitempty"`
 	Image              string                        `json:"image,omitempty"`
@@ -49,7 +49,7 @@ type RedisClusterSpec struct {
 	Sentinel SentinelSettings `json:"sentinel,omitempty"`
 }
 
-// RedisCluster is the Schema for the redisclusters API
+// RedisSentinel is the Schema for the RedisSentinels API
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
@@ -60,28 +60,28 @@ type RedisClusterSpec struct {
 // +kubebuilder:printcolumn:name="HEALTHY",type=string,JSONPath=`.status.conditions[?(@.type=="Healthy")].status`
 // +kubebuilder:printcolumn:name="MASTER-IP",type=string,JSONPath=".status.masterIP",priority=10
 // +kubebuilder:printcolumn:name="SENTINEL-IP",type=string,JSONPath=".status.sentinelIP",priority=10
-// +kubebuilder:resource:scope=Namespaced,shortName={rediscluster},singular=rediscluster
+// +kubebuilder:resource:scope=Namespaced,shortName={redissentinel},singular=redissentinel
 // +kubebuilder:subresource:status
-type RedisCluster struct {
+type RedisSentinel struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RedisClusterSpec   `json:"spec,omitempty"`
-	Status RedisClusterStatus `json:"status,omitempty"`
+	Spec   RedisSentinelSpec   `json:"spec,omitempty"`
+	Status RedisSentinelStatus `json:"status,omitempty"`
 }
 
-// RedisClusterList contains a list of RedisCluster
+// RedisSentinelList contains a list of RedisSentinel
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
-type RedisClusterList struct {
+type RedisSentinelList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []RedisCluster `json:"items"`
+	Items           []RedisSentinel `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&RedisCluster{}, &RedisClusterList{})
+	SchemeBuilder.Register(&RedisSentinel{}, &RedisSentinelList{})
 }
 
 // RedisExporter defines the specification for the redis exporter

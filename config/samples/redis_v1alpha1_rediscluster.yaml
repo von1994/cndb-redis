@@ -1,10 +1,10 @@
 apiVersion: redis.lovelycat.io/v1alpha1
-kind: RedisCluster
+kind: RedisSentinel
 metadata:
   annotations:
     # if your operator run as cluster-scoped, add this annotations
     lovelycat.io/scope: cluster-scoped
-  name: rediscluster-sample
+  name: RedisSentinel-sample
 spec:
   # Add fields here
   size: 3

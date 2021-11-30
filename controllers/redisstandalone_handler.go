@@ -8,12 +8,13 @@ import (
 	"github.com/von1994/cndb-redis/controllers/redisstandalone/cache"
 	"github.com/von1994/cndb-redis/controllers/redisstandalone/service"
 	"github.com/von1994/cndb-redis/pkg/client/k8s"
+	"github.com/von1994/cndb-redis/pkg/metrics"
 	"github.com/von1994/cndb-redis/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// RedisStandaloneHandler 包含处理调谐所需要的各种客户端
-type RedisStandaloneHandler struct {
+// StandaloneHandler 包含处理调谐所需要的各种客户端
+type StandaloneHandler struct {
 	k8sServices k8s.Services
 	rcService   service.RedisStandaloneClient
 	rcChecker   service.RedisStandaloneCheck
@@ -27,9 +28,10 @@ type RedisStandaloneHandler struct {
 //  @receiver r
 //  @param rc
 //  @return error
-func (r *RedisStandaloneHandler) Do(rc *redisv1alpha1.RedisStandalone) error {
+func (r *StandaloneHandler) Do(rc *redisv1alpha1.RedisStandalone) error {
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).Info("handler doing")
 	if modified, err := rc.Validate(); err != nil {
+		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
 	} else if modified {
 		if err := r.k8sServices.UpdateStandaloneSpec(rc.Namespace, rc); err != nil {
@@ -64,12 +66,14 @@ func (r *RedisStandaloneHandler) Do(rc *redisv1alpha1.RedisStandalone) error {
 		if updateFailedErr := r.k8sServices.UpdateStandaloneStatus(rc.Namespace, rc); updateFailedErr != nil {
 			return updateFailedErr
 		}
+		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
 	}
 
 	r.logger.WithValues("namespace", rc.Namespace, "name", rc.Name).V(2).Info("CheckAndHeal...")
 	r.eventsCli.CheckCluster(rc)
 	if err := r.CheckAndHeal(meta); err != nil {
+		metrics.ClusterMetrics.SetClusterError(rc.Namespace, rc.Name)
 		return err
 	}
 
@@ -79,11 +83,11 @@ func (r *RedisStandaloneHandler) Do(rc *redisv1alpha1.RedisStandalone) error {
 	if updateFailedErr := r.k8sServices.UpdateStandaloneStatus(rc.Namespace, rc); updateFailedErr != nil {
 		return updateFailedErr
 	}
-
+	metrics.ClusterMetrics.SetClusterOK(rc.Namespace, rc.Name)
 	return nil
 }
 
-func (r *RedisStandaloneHandler) updateStatus(meta *cache.Meta) error {
+func (r *StandaloneHandler) updateStatus(meta *cache.Meta) error {
 	rc := meta.Obj
 
 	if meta.State != cache.Check {
@@ -111,7 +115,7 @@ func (r *RedisStandaloneHandler) updateStatus(meta *cache.Meta) error {
 	return nil
 }
 
-func (r *RedisStandaloneHandler) createOwnerReferences(rc *redisv1alpha1.RedisStandalone) []metav1.OwnerReference {
+func (r *StandaloneHandler) createOwnerReferences(rc *redisv1alpha1.RedisStandalone) []metav1.OwnerReference {
 	rcvk := redisv1alpha1.VersionKind(redisv1alpha1.RedisStandaloneKind)
 	return []metav1.OwnerReference{
 		*metav1.NewControllerRef(rc, rcvk),
@@ -119,9 +123,38 @@ func (r *RedisStandaloneHandler) createOwnerReferences(rc *redisv1alpha1.RedisSt
 }
 
 // getLabels merges all the labels (dynamic and operator static ones).
-func (r *RedisStandaloneHandler) getLabels(rc *redisv1alpha1.RedisStandalone) map[string]string {
+func (r *StandaloneHandler) getLabels(rc *redisv1alpha1.RedisStandalone) map[string]string {
 	dynLabels := map[string]string{
 		redisv1alpha1.LabelNameKey: fmt.Sprintf("%s%c%s", rc.Namespace, '_', rc.Name),
 	}
-	return util.MergeLabels(defaultLabels, dynLabels, rc.Labels)
+	return util.MergeLabels(common.DefaultLabels, dynLabels, rc.Labels)
+}
+
+func (r *StandaloneHandler) CheckAndHeal(meta *cache.Meta) error {
+	return nil
+}
+
+// Ensure the RedisSentinel's components are correct.
+func (r *StandaloneHandler) Ensure(rc *redisv1alpha1.RedisStandalone, labels map[string]string, or []metav1.OwnerReference) error {
+	if err := r.rcService.EnsureRedisService(rc, labels, or); err != nil {
+		return err
+	}
+	if err := r.rcService.EnsureRedisHeadlessService(rc, labels, or); err != nil {
+		return err
+	}
+	if err := r.rcService.EnsureRedisConfigMap(rc, labels, or); err != nil {
+		return err
+	}
+	if err := r.rcService.EnsureRedisShutdownConfigMap(rc, labels, or); err != nil {
+		return err
+	}
+	if rc.Spec.Exporter.Enabled {
+		if err := r.rcService.EnsureRedisMonitorService(rc, labels, or); err != nil {
+			return err
+		}
+	}
+	if err := r.rcService.EnsureRedisStatefulset(rc, labels, or); err != nil {
+		return err
+	}
+	return nil
 }

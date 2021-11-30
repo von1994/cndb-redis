@@ -13,7 +13,7 @@ resources:
   controller: true
   domain: lovelycat.io
   group: redis
-  kind: RedisCluster
+  kind: RedisSentinel
   path: github.com/von1994/cndb-redis/api/v1alpha1
   version: v1alpha1
 - api:

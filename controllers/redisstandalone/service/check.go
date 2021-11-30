@@ -10,14 +10,14 @@ import (
 type RedisStandaloneCheck interface {
 }
 
-// RedisClusterChecker is our implementation of RedisClusterCheck intercace
+// RedisStandaloneChecker is our implementation of RedisSentinelCheck intercace
 type RedisStandaloneChecker struct {
 	k8sService  k8s.Services
 	redisClient redis.Client
 	logger      logr.Logger
 }
 
-// NewRedisStandaloneChecker creates an object of the RedisClusterChecker struct
+// NewRedisStandaloneChecker creates an object of the RedisSentinelChecker struct
 func NewRedisStandaloneChecker(k8sService k8s.Services, redisClient redis.Client, logger logr.Logger) *RedisStandaloneChecker {
 	return &RedisStandaloneChecker{
 		k8sService:  k8sService,

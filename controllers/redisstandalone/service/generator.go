@@ -8,6 +8,7 @@ import (
 	"github.com/von1994/cndb-redis/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -29,18 +30,19 @@ func getRedisDataVolume(rc *redisv1alpha1.RedisStandalone) *corev1.Volume {
 	// This will find the volumed desired by the user. If no volume defined
 	// an EmptyDir will be used by default
 	switch {
+	// VolumeTemplate handles by statefulSet controller
 	case rc.Spec.Storage.PersistentVolumeClaim != nil:
 		return nil
 	case rc.Spec.Storage.EmptyDir != nil:
 		return &corev1.Volume{
-			Name: redisStorageVolumeName,
+			Name: common.RedisStorageVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: rc.Spec.Storage.EmptyDir,
 			},
 		}
 	default:
 		return &corev1.Volume{
-			Name: redisStorageVolumeName,
+			Name: common.RedisStorageVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{},
 			},
@@ -53,55 +55,55 @@ func getRedisDataVolumeName(rc *redisv1alpha1.RedisStandalone) string {
 	case rc.Spec.Storage.PersistentVolumeClaim != nil:
 		return rc.Spec.Storage.PersistentVolumeClaim.Name
 	case rc.Spec.Storage.EmptyDir != nil:
-		return redisStorageVolumeName
+		return common.RedisStorageVolumeName
 	default:
-		return redisStorageVolumeName
+		return common.RedisStorageVolumeName
 	}
 }
 
 func getRedisVolumeMounts(rc *redisv1alpha1.RedisStandalone) []corev1.VolumeMount {
 	volumeMounts := []corev1.VolumeMount{
 		{
-			Name:      redisConfigurationVolumeName,
+			Name:      common.RedisConfigurationVolumeName,
 			MountPath: "/etc/redis",
 		},
-		//{
-		//	Name:      redisShutdownConfigurationVolumeName,
-		//	MountPath: "/redis-shutdown",
-		//},
-		//{
-		//	Name:      getRedisDataVolumeName(rc),
-		//	MountPath: "/data",
-		//},
+		{
+			Name:      common.RedisShutdownConfigurationVolumeName,
+			MountPath: "/redis-shutdown",
+		},
+		{
+			Name:      getRedisDataVolumeName(rc),
+			MountPath: "/data",
+		},
 	}
 
 	return volumeMounts
 }
 
 func getRedisVolumes(rc *redisv1alpha1.RedisStandalone) []corev1.Volume {
-	//shutdownConfigMapName := redisstandalone.GetRedisShutdownConfigMapName(rc)
-	//
-	//executeMode := int32(0744)
-	readMode := int32(0644)
+	shutdownConfigMapName := redisstandalone.GetRedisShutdownConfigMapName(rc)
+
+	executeMode := int32(0744)
+	readwriteMode := int32(0644)
 	volumes := []corev1.Volume{
 		{
-			Name: redisConfigurationVolumeName,
+			Name: common.RedisConfigurationVolumeName,
 			VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{
 				LocalObjectReference: corev1.LocalObjectReference{Name: redisstandalone.GetRedisName(rc)},
-				DefaultMode:          &readMode,
+				DefaultMode:          &readwriteMode,
 			},
 			}},
-		//{
-		//	Name: redisShutdownConfigurationVolumeName,
-		//	VolumeSource: corev1.VolumeSource{
-		//		ConfigMap: &corev1.ConfigMapVolumeSource{
-		//			LocalObjectReference: corev1.LocalObjectReference{
-		//				Name: shutdownConfigMapName,
-		//			},
-		//			DefaultMode: &executeMode,
-		//		},
-		//	},
-		//},
+		{
+			Name: common.RedisShutdownConfigurationVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: shutdownConfigMapName,
+					},
+					DefaultMode: &executeMode,
+				},
+			},
+		},
 	}
 
 	dataVolume := getRedisDataVolume(rc)
@@ -238,7 +240,7 @@ func generateRedisStatefulSet(rc *redisv1alpha1.RedisStandalone, labels map[stri
 							VolumeMounts: volumeMounts,
 							Command:      redisCommand,
 							ReadinessProbe: &corev1.Probe{
-								InitialDelaySeconds: graceTime,
+								InitialDelaySeconds: common.GraceTime,
 								TimeoutSeconds:      5,
 								Handler: corev1.Handler{
 									Exec: &corev1.ExecAction{
@@ -251,7 +253,7 @@ func generateRedisStatefulSet(rc *redisv1alpha1.RedisStandalone, labels map[stri
 								},
 							},
 							LivenessProbe: &corev1.Probe{
-								InitialDelaySeconds: graceTime,
+								InitialDelaySeconds: common.GraceTime,
 								TimeoutSeconds:      5,
 								Handler: corev1.Handler{
 									Exec: &corev1.ExecAction{
@@ -289,10 +291,10 @@ func generateRedisStatefulSet(rc *redisv1alpha1.RedisStandalone, labels map[stri
 		}
 	}
 
-	//if rc.Spec.Exporter.Enabled {
-	//	exporter := createRedisExporterContainer(rc)
-	//	ss.Spec.Template.Spec.Containers = append(ss.Spec.Template.Spec.Containers, exporter)
-	//}
+	if rc.Spec.Exporter.Enabled {
+		exporter := createRedisExporterContainer(rc)
+		ss.Spec.Template.Spec.Containers = append(ss.Spec.Template.Spec.Containers, exporter)
+	}
 
 	return ss
 }
@@ -320,6 +322,98 @@ func generateRedisConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string
 		},
 		Data: map[string]string{
 			util.RedisConfigFileName: redisConfigFileContent,
+		},
+	}
+}
+
+func generateRedisMonitorService(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.Service {
+	name := redisstandalone.GetRedisName(rc) + "-monitor"
+	namespace := rc.Namespace
+	labels = util.MergeLabels(labels, generateSelectorLabels(util.RedisRoleName, rc.Name))
+	monitorLabels := util.MergeLabels(labels, map[string]string{common.UseLabelKey: common.MonitorLabelValue})
+	metricsTargetPort := intstr.FromInt(common.ExporterPort)
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            name,
+			Namespace:       namespace,
+			Labels:          monitorLabels,
+			OwnerReferences: ownerRefs,
+		},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Port:       common.ExporterPort,
+					Protocol:   corev1.ProtocolTCP,
+					Name:       "prometheus",
+					TargetPort: metricsTargetPort,
+				},
+			},
+			Selector: labels,
+		},
+	}
+}
+
+func createRedisExporterContainer(rc *redisv1alpha1.RedisStandalone) corev1.Container {
+	container := corev1.Container{
+		Name:            common.ExporterContainerName,
+		Image:           rc.Spec.Exporter.Image,
+		ImagePullPolicy: common.PullPolicy(rc.Spec.Exporter.ImagePullPolicy),
+		Env: []corev1.EnvVar{
+			{
+				Name: "REDIS_ALIAS",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{
+						FieldPath: "metadata.name",
+					},
+				},
+			},
+		},
+		Ports: []corev1.ContainerPort{
+			{
+				Name:          common.ExporterPortName,
+				ContainerPort: common.ExporterPort,
+				Protocol:      corev1.ProtocolTCP,
+			},
+		},
+		Resources: corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse(common.ExporterDefaultLimitCPU),
+				corev1.ResourceMemory: resource.MustParse(common.ExporterDefaultLimitMemory),
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse(common.ExporterDefaultRequestCPU),
+				corev1.ResourceMemory: resource.MustParse(common.ExporterDefaultRequestMemory),
+			},
+		},
+	}
+	if rc.Spec.Password != "" {
+		container.Env = append(container.Env, corev1.EnvVar{
+			Name:  common.RedisPasswordEnv,
+			Value: rc.Spec.Password,
+		})
+	}
+	return container
+}
+
+
+func generateRedisShutdownConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) *corev1.ConfigMap {
+	name := redisstandalone.GetRedisShutdownConfigMapName(rc)
+	namespace := rc.Namespace
+
+	labels = util.MergeLabels(labels, generateSelectorLabels(util.RedisRoleName, rc.Name))
+	shutdownContent := fmt.Sprintf(`#!/usr/bin/env sh
+echo "do nothing"`)
+
+	return &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            name,
+			Namespace:       namespace,
+			Labels:          labels,
+			OwnerReferences: ownerRefs,
+		},
+		Data: map[string]string{
+			"shutdown.sh": shutdownContent,
 		},
 	}
 }

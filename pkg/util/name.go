@@ -2,8 +2,6 @@ package util
 
 import (
 	"fmt"
-
-	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 )
 
 // const
@@ -20,47 +18,10 @@ const (
 	HostnameTopologyKey    = "kubernetes.io/hostname"
 )
 
-// GetRedisShutdownConfigMapName returns the name for redis configmap
-func GetRedisShutdownConfigMapName(rc *redisv1alpha1.RedisCluster) string {
-	if rc.Spec.ShutdownConfigMap != "" {
-		return rc.Spec.ShutdownConfigMap
-	}
-	return GetRedisShutdownName(rc)
-}
-
-// GetRedisName returns the name for redis resources
-func GetRedisName(rc *redisv1alpha1.RedisCluster) string {
-	return GenerateName(RedisName, rc.Name)
-}
-
-// GetRedisShutdownName returns the name for redis resources
-func GetRedisShutdownName(rc *redisv1alpha1.RedisCluster) string {
-	return GenerateName(RedisShutdownName, rc.Name)
-}
-
-// GetSentinelName returns the name for sentinel resources
-func GetSentinelName(rc *redisv1alpha1.RedisCluster) string {
-	return GenerateName(SentinelName, rc.Name)
-}
-
 // GenerateName 生成标准名称
 //  @param typeName
 //  @param metaName
 //  @return string
 func GenerateName(typeName, metaName string) string {
 	return fmt.Sprintf("%s%s-%s", BaseName, typeName, metaName)
-}
-
-// GetSentinelReadinessCm  生成sentinel readiness configmap名称
-//  @param rc
-//  @return string
-func GetSentinelReadinessCm(rc *redisv1alpha1.RedisCluster) string {
-	return GenerateName("-sentinel-readiness", rc.Name)
-}
-
-// GetSentinelHeadlessSvc  生成sentinel headless svc名称
-//  @param rc
-//  @return string
-func GetSentinelHeadlessSvc(rc *redisv1alpha1.RedisCluster) string {
-	return GenerateName("-sentinel-headless", rc.Name)
 }

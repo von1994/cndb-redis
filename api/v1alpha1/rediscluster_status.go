@@ -44,60 +44,60 @@ const (
 	ClusterConditionFailed                    = "Failed"
 )
 
-// RedisClusterStatus defines the observed state of RedisCluster
+// RedisSentinelStatus defines the observed state of RedisSentinel
 // +k8s:openapi-gen=true
-type RedisClusterStatus struct {
+type RedisSentinelStatus struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	Conditions []Condition `json:"conditions,omitempty"`
 	MasterIP   string      `json:"masterIP,omitempty"`
 	SentinelIP string      `json:"sentinelIP,omitempty"`
 }
 
-func (cs *RedisClusterStatus) DescConditionsByTime() {
+func (cs *RedisSentinelStatus) DescConditionsByTime() {
 	sort.Slice(cs.Conditions, func(i, j int) bool {
 		return cs.Conditions[i].LastUpdateAt.Time.After(cs.Conditions[j].LastUpdateAt.Time)
 	})
 }
 
-func (cs *RedisClusterStatus) SetScalingUpCondition(message string) {
+func (cs *RedisSentinelStatus) SetScalingUpCondition(message string) {
 	c := newClusterCondition(ClusterConditionScaling, corev1.ConditionTrue, "Scaling up", message)
 	cs.setClusterCondition(*c)
 }
 
-func (cs *RedisClusterStatus) SetCreateCondition(message string) {
+func (cs *RedisSentinelStatus) SetCreateCondition(message string) {
 	c := newClusterCondition(ClusterConditionCreating, corev1.ConditionTrue, "Creating", message)
 	cs.setClusterCondition(*c)
 }
 
-func (cs *RedisClusterStatus) SetScalingDownCondition(message string) {
+func (cs *RedisSentinelStatus) SetScalingDownCondition(message string) {
 	c := newClusterCondition(ClusterConditionScaling, corev1.ConditionTrue, "Scaling down", message)
 	cs.setClusterCondition(*c)
 }
 
-func (cs *RedisClusterStatus) SetUpgradingCondition(message string) {
+func (cs *RedisSentinelStatus) SetUpgradingCondition(message string) {
 	c := newClusterCondition(ClusterConditionUpgrading, corev1.ConditionTrue,
 		"Cluster upgrading", message)
 	cs.setClusterCondition(*c)
 }
 
-func (cs *RedisClusterStatus) SetUpdatingCondition(message string) {
+func (cs *RedisSentinelStatus) SetUpdatingCondition(message string) {
 	c := newClusterCondition(ClusterConditionUpdating, corev1.ConditionTrue,
 		"Cluster updating", message)
 	cs.setClusterCondition(*c)
 }
 
-func (cs *RedisClusterStatus) SetReadyCondition(message string) {
+func (cs *RedisSentinelStatus) SetReadyCondition(message string) {
 	c := newClusterCondition(ClusterConditionHealthy, corev1.ConditionTrue, "Cluster available", message)
 	cs.setClusterCondition(*c)
 }
 
-func (cs *RedisClusterStatus) SetFailedCondition(message string) {
+func (cs *RedisSentinelStatus) SetFailedCondition(message string) {
 	c := newClusterCondition(ClusterConditionFailed, corev1.ConditionTrue,
 		"Cluster failed", message)
 	cs.setClusterCondition(*c)
 }
 
-func (cs *RedisClusterStatus) ClearCondition(t ConditionType) {
+func (cs *RedisSentinelStatus) ClearCondition(t ConditionType) {
 	pos, _ := getClusterCondition(cs, t)
 	if pos == -1 {
 		return
@@ -105,7 +105,7 @@ func (cs *RedisClusterStatus) ClearCondition(t ConditionType) {
 	cs.Conditions = append(cs.Conditions[:pos], cs.Conditions[pos+1:]...)
 }
 
-func (cs *RedisClusterStatus) setClusterCondition(c Condition) {
+func (cs *RedisSentinelStatus) setClusterCondition(c Condition) {
 	pos, cp := getClusterCondition(cs, c.Type)
 	if cp != nil &&
 		cp.Status == c.Status && cp.Reason == c.Reason && cp.Message == c.Message {
@@ -123,7 +123,7 @@ func (cs *RedisClusterStatus) setClusterCondition(c Condition) {
 	}
 }
 
-func getClusterCondition(status *RedisClusterStatus, t ConditionType) (int, *Condition) {
+func getClusterCondition(status *RedisSentinelStatus, t ConditionType) (int, *Condition) {
 	for i, c := range status.Conditions {
 		if t == c.Type {
 			return i, &c

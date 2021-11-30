@@ -138,11 +138,11 @@ func (f *Framework) WaitPodRunning(podName string, timeout time.Duration) (*v1.P
 	}
 }
 
-// WaitRedisclusterHealthy wait for a status of a RedisCluster become Healthy
-func (f *Framework) WaitRedisclusterHealthy(name string, wait, timeout time.Duration) (result *redisv1alpha1.RedisCluster, err error) {
+// WaitRedisSentinelHealthy wait for a status of a RedisSentinel become Healthy
+func (f *Framework) WaitRedisSentinelHealthy(name string, wait, timeout time.Duration) (result *redisv1alpha1.RedisSentinel, err error) {
 	// wait for redis cluster status change
 	time.Sleep(wait)
-	result = &redisv1alpha1.RedisCluster{}
+	result = &redisv1alpha1.RedisSentinel{}
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 	for {
@@ -169,11 +169,11 @@ func (f *Framework) WaitRedisclusterHealthy(name string, wait, timeout time.Dura
 	}
 }
 
-// CreateRedisCluster creates a RedisCluster in test namespace
-func (f *Framework) CreateRedisCluster(spec *redisv1alpha1.RedisCluster) *redisv1alpha1.RedisCluster {
-	f.Logf("creating RedisCluster %s", spec.Name)
+// CreateRedisSentinel creates a RedisSentinel in test namespace
+func (f *Framework) CreateRedisSentinel(spec *redisv1alpha1.RedisSentinel) *redisv1alpha1.RedisSentinel {
+	f.Logf("creating RedisSentinel %s", spec.Name)
 	var err error
-	result := &redisv1alpha1.RedisCluster{}
+	result := &redisv1alpha1.RedisSentinel{}
 	err = f.UtilClient.Get(context.TODO(), types.NamespacedName{
 		Namespace: f.namespace,
 		Name:      spec.Name,
@@ -191,26 +191,26 @@ func (f *Framework) CreateRedisCluster(spec *redisv1alpha1.RedisCluster) *redisv
 	return result
 }
 
-// UpdateRedisCluster update a RedisCluster in test namespace
-func (f *Framework) UpdateRedisCluster(spec *redisv1alpha1.RedisCluster) *redisv1alpha1.RedisCluster {
-	f.Logf("updating RedisCluster %s", spec.Name)
+// UpdateRedisSentinel update a RedisSentinel in test namespace
+func (f *Framework) UpdateRedisSentinel(spec *redisv1alpha1.RedisSentinel) *redisv1alpha1.RedisSentinel {
+	f.Logf("updating RedisSentinel %s", spec.Name)
 	err := f.UtilClient.Update(context.TODO(), spec)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	return spec
 }
 
-// CreateRedisClusterAndWaitHealthy creates a RedisCluster and waiting for it to become Healthy
-func (f *Framework) CreateRedisClusterAndWaitHealthy(spec *redisv1alpha1.RedisCluster, timeout time.Duration) *redisv1alpha1.RedisCluster {
-	result := f.CreateRedisCluster(spec)
-	updateResult, err := f.WaitRedisclusterHealthy(result.Name, 30*time.Second, timeout)
+// CreateRedisSentinelAndWaitHealthy creates a RedisSentinel and waiting for it to become Healthy
+func (f *Framework) CreateRedisSentinelAndWaitHealthy(spec *redisv1alpha1.RedisSentinel, timeout time.Duration) *redisv1alpha1.RedisSentinel {
+	result := f.CreateRedisSentinel(spec)
+	updateResult, err := f.WaitRedisSentinelHealthy(result.Name, 30*time.Second, timeout)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	return updateResult
 }
 
-// DeleteRedisCluster deletes a RedisCluster with specified name in test namespace
-func (f *Framework) DeleteRedisCluster(name string) {
-	f.Logf("deleting RedisCluster %s", name)
-	result := &redisv1alpha1.RedisCluster{}
+// DeleteRedisSentinel deletes a RedisSentinel with specified name in test namespace
+func (f *Framework) DeleteRedisSentinel(name string) {
+	f.Logf("deleting RedisSentinel %s", name)
+	result := &redisv1alpha1.RedisSentinel{}
 	err := f.UtilClient.Get(context.TODO(), types.NamespacedName{
 		Namespace: f.namespace,
 		Name:      name,

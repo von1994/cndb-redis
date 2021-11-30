@@ -27,7 +27,7 @@ type Meta struct {
 	State     StateType
 	Size      int32
 	Auth      *util.AuthConfig
-	Obj       *redisv1alpha1.RedisStandalone
+	Obj       *redisv1alpha1.RedisSentinel
 
 	Status  redisv1alpha1.ConditionType
 	Message string
@@ -35,7 +35,7 @@ type Meta struct {
 	Config map[string]string
 }
 
-func newStandalone(rc *redisv1alpha1.RedisStandalone) *Meta {
+func newCluster(rc *redisv1alpha1.RedisSentinel) *Meta {
 	return &Meta{
 		Auth: &util.AuthConfig{
 			Password: rc.Spec.Password,
@@ -47,7 +47,7 @@ func newStandalone(rc *redisv1alpha1.RedisStandalone) *Meta {
 		State:     Create,
 		Name:      rc.GetName(),
 		NameSpace: rc.GetNamespace(),
-		Message:   "Bootstrap redis standalone cluster",
+		Message:   "Bootstrap redis cluster",
 	}
 }
 
@@ -56,11 +56,11 @@ type MetaMap struct {
 	sync.Map
 }
 
-// Cache 增加或更新redisstandalone对象
+// Cache 增加或更新RedisSentinel对象
 //  @receiver c
 //  @param obj
 //  @return *Meta
-func (c *MetaMap) Cache(obj *redisv1alpha1.RedisStandalone) *Meta {
+func (c *MetaMap) Cache(obj *redisv1alpha1.RedisSentinel) *Meta {
 	meta, ok := c.Load(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 	if !ok {
 		c.Add(obj)
@@ -74,7 +74,7 @@ func (c *MetaMap) Cache(obj *redisv1alpha1.RedisStandalone) *Meta {
 //  @receiver c
 //  @param obj
 //  @return *Meta
-func (c *MetaMap) Get(obj *redisv1alpha1.RedisStandalone) *Meta {
+func (c *MetaMap) Get(obj *redisv1alpha1.RedisSentinel) *Meta {
 	meta, _ := c.Load(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 	return meta.(*Meta)
 }
@@ -82,14 +82,14 @@ func (c *MetaMap) Get(obj *redisv1alpha1.RedisStandalone) *Meta {
 // Add function
 //  @receiver c
 //  @param obj
-func (c *MetaMap) Add(obj *redisv1alpha1.RedisStandalone) {
-	c.Store(getNamespacedName(obj.GetNamespace(), obj.GetName()), newStandalone(obj))
+func (c *MetaMap) Add(obj *redisv1alpha1.RedisSentinel) {
+	c.Store(getNamespacedName(obj.GetNamespace(), obj.GetName()), newCluster(obj))
 }
 
 // Del function
 //  @receiver c
 //  @param obj
-func (c *MetaMap) Del(obj *redisv1alpha1.RedisStandalone) {
+func (c *MetaMap) Del(obj *redisv1alpha1.RedisSentinel) {
 	c.Delete(getNamespacedName(obj.GetNamespace(), obj.GetName()))
 }
 
@@ -97,10 +97,10 @@ func (c *MetaMap) Del(obj *redisv1alpha1.RedisStandalone) {
 //  @receiver c
 //  @param meta
 //  @param new
-func (c *MetaMap) Update(meta *Meta, new *redisv1alpha1.RedisStandalone) {
+func (c *MetaMap) Update(meta *Meta, new *redisv1alpha1.RedisSentinel) {
 	if meta.Obj.GetGeneration() == new.GetGeneration() {
 		// Ensure initial condition is set
-		if reflect.DeepEqual(meta.Obj.Status, redisv1alpha1.RedisStandaloneStatus{}) {
+		if reflect.DeepEqual(meta.Obj.Status, redisv1alpha1.RedisSentinelStatus{}) {
 			meta.State = Create
 			return
 		}
@@ -135,19 +135,19 @@ func (c *MetaMap) Update(meta *Meta, new *redisv1alpha1.RedisStandalone) {
 	}
 }
 
-func isImagesChanged(old, new *redisv1alpha1.RedisStandalone) bool {
+func isImagesChanged(old, new *redisv1alpha1.RedisSentinel) bool {
 	return old.Spec.Image == new.Spec.Image
 }
 
-func isScalingDown(old, new *redisv1alpha1.RedisStandalone) bool {
+func isScalingDown(old, new *redisv1alpha1.RedisSentinel) bool {
 	return old.Spec.Size > new.Spec.Size
 }
 
-func isScalingUp(old, new *redisv1alpha1.RedisStandalone) bool {
+func isScalingUp(old, new *redisv1alpha1.RedisSentinel) bool {
 	return old.Spec.Size < new.Spec.Size
 }
 
-func isResourcesChange(old, new *redisv1alpha1.RedisStandalone) bool {
+func isResourcesChange(old, new *redisv1alpha1.RedisSentinel) bool {
 	return old.Spec.Resources.Limits.Memory().Size() != new.Spec.Resources.Limits.Memory().Size() ||
 		old.Spec.Resources.Limits.Cpu().Size() != new.Spec.Resources.Limits.Cpu().Size()
 }

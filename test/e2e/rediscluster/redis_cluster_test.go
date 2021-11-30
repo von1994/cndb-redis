@@ -1,4 +1,4 @@
-package rediscluster_test
+package RedisSentinel_test
 
 import (
 	"context"
@@ -31,14 +31,14 @@ const (
 	redis5 = "harbor.enmotech.com/cndb-redis/redis:5.0.4-alpine"
 )
 
-var _ = ginkgo.Describe("RedisCluster", func() {
-	ginkgo.Describe("[RedisCluster] create basic redis cluster", func() {
+var _ = ginkgo.Describe("RedisSentinel", func() {
+	ginkgo.Describe("[RedisSentinel] create basic redis cluster", func() {
 		name := e2e.RandString(8)
-		rc := &redisv1alpha1.RedisCluster{}
+		rc := &redisv1alpha1.RedisSentinel{}
 		auth := &util.AuthConfig{}
 
 		ginkgo.BeforeEach(func() {
-			rc = createBasicRedisCluster(name)
+			rc = createBasicRedisSentinel(name)
 			auth = &util.AuthConfig{Password: rc.Spec.Password}
 			wirteToMaster(rc, auth)
 		})
@@ -52,7 +52,7 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		ginkgo.Context("when update the redis cluster size", func() {
 			ginkgo.BeforeEach(func() {
 				rc.Spec.Size += 1
-				updateRedisClusterAndWaitHealthy(rc)
+				updateRedisSentinelAndWaitHealthy(rc)
 			})
 
 			ginkgo.It("start check", func() {
@@ -66,7 +66,7 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 					"hz":         "13",
 					"maxclients": "103",
 				}
-				updateRedisClusterAndWaitHealthy(rc)
+				updateRedisSentinelAndWaitHealthy(rc)
 			})
 
 			ginkgo.It("start check", func() {
@@ -78,11 +78,11 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 			ginkgo.BeforeEach(func() {
 				rc.Spec.Resources.Limits.Cpu().Add(resource.MustParse("20m"))
 				rc.Spec.Resources.Limits.Memory().Add(resource.MustParse("20Mi"))
-				updateRedisClusterAndWaitHealthy(rc)
+				updateRedisSentinelAndWaitHealthy(rc)
 			})
 
 			ginkgo.AfterEach(func() {
-				f.DeleteRedisCluster(rc.Name)
+				f.DeleteRedisSentinel(rc.Name)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -90,9 +90,9 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		})
 	})
 
-	ginkgo.Describe("[RedisCluster] create a redis version 3 cluster", func() {
+	ginkgo.Describe("[RedisSentinel] create a redis version 3 cluster", func() {
 		name := e2e.RandString(8)
-		rc := &redisv1alpha1.RedisCluster{}
+		rc := &redisv1alpha1.RedisSentinel{}
 		auth := &util.AuthConfig{}
 
 		ginkgo.BeforeEach(func() {
@@ -114,11 +114,11 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 					"hz":         "13",
 					"maxclients": "103",
 				}
-				updateRedisClusterAndWaitHealthy(rc)
+				updateRedisSentinelAndWaitHealthy(rc)
 			})
 
 			ginkgo.AfterEach(func() {
-				f.DeleteRedisCluster(rc.Name)
+				f.DeleteRedisSentinel(rc.Name)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -126,9 +126,9 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		})
 	})
 
-	ginkgo.Describe("[RedisCluster] create a redis version 4 cluster", func() {
+	ginkgo.Describe("[RedisSentinel] create a redis version 4 cluster", func() {
 		name := e2e.RandString(8)
-		rc := &redisv1alpha1.RedisCluster{}
+		rc := &redisv1alpha1.RedisSentinel{}
 		auth := &util.AuthConfig{}
 
 		ginkgo.BeforeEach(func() {
@@ -150,11 +150,11 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 					"hz":         "13",
 					"maxclients": "103",
 				}
-				updateRedisClusterAndWaitHealthy(rc)
+				updateRedisSentinelAndWaitHealthy(rc)
 			})
 
 			ginkgo.AfterEach(func() {
-				f.DeleteRedisCluster(rc.Name)
+				f.DeleteRedisSentinel(rc.Name)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -162,13 +162,13 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		})
 	})
 
-	ginkgo.Describe("[RedisCluster] create a redis cluster with password", func() {
+	ginkgo.Describe("[RedisSentinel] create a redis cluster with password", func() {
 		name := e2e.RandString(8)
-		rc := &redisv1alpha1.RedisCluster{}
+		rc := &redisv1alpha1.RedisSentinel{}
 		auth := &util.AuthConfig{}
 
 		ginkgo.BeforeEach(func() {
-			rc = createPasswdRedisCluster(name)
+			rc = createPasswdRedisSentinel(name)
 			auth = &util.AuthConfig{Password: rc.Spec.Password}
 			wirteToMaster(rc, auth)
 		})
@@ -186,11 +186,11 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 					"hz":         "13",
 					"maxclients": "103",
 				}
-				updateRedisClusterAndWaitHealthy(rc)
+				updateRedisSentinelAndWaitHealthy(rc)
 			})
 
 			ginkgo.AfterEach(func() {
-				f.DeleteRedisCluster(rc.Name)
+				f.DeleteRedisSentinel(rc.Name)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -198,13 +198,13 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		})
 	})
 
-	ginkgo.Describe("[RedisCluster] create a basic redis cluster, then delete pod,statefulSet", func() {
+	ginkgo.Describe("[RedisSentinel] create a basic redis cluster, then delete pod,statefulSet", func() {
 		name := e2e.RandString(8)
-		rc := &redisv1alpha1.RedisCluster{}
+		rc := &redisv1alpha1.RedisSentinel{}
 		auth := &util.AuthConfig{}
 
 		ginkgo.BeforeEach(func() {
-			rc = createBasicRedisCluster(name)
+			rc = createBasicRedisSentinel(name)
 			auth = &util.AuthConfig{Password: rc.Spec.Password}
 			wirteToMaster(rc, auth)
 		})
@@ -218,7 +218,7 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
 				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
-				f.WaitRedisclusterHealthy(rc.Name, waitTime, defaultTimeout)
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -230,18 +230,18 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 				f.Logf("delete statefulSet %s %s", rc.Namespace, util.GetRedisName(rc))
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, util.GetRedisName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisclusterHealthy(rc.Name, waitTime, defaultTimeout)
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
-				ginkgo.By("should a RedisCluster has only one master", func() {
+				ginkgo.By("should a RedisSentinel has only one master", func() {
 					checkMaster(rc, auth)
 				})
 
-				ginkgo.By("should a RedisCluster's SENTINEL monitored the same redis master", func() {
+				ginkgo.By("should a RedisSentinel's SENTINEL monitored the same redis master", func() {
 					checkSentinelMonitor(rc, auth)
 				})
 
-				ginkgo.By("should can set custom redis config.yaml to the RedisCluster", func() {
+				ginkgo.By("should can set custom redis config.yaml to the RedisSentinel", func() {
 					checkRedisConfig(rc, auth)
 				})
 			})
@@ -251,10 +251,10 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 			ginkgo.BeforeEach(func() {
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, util.GetSentinelName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisclusterHealthy(rc.Name, waitTime, defaultTimeout)
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.AfterEach(func() {
-				f.DeleteRedisCluster(rc.Name)
+				f.DeleteRedisSentinel(rc.Name)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -262,13 +262,13 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		})
 	})
 
-	ginkgo.Describe("[RedisCluster] create a redis cluster with pvc, then delete pod,statefulSet", func() {
+	ginkgo.Describe("[RedisSentinel] create a redis cluster with pvc, then delete pod,statefulSet", func() {
 		name := e2e.RandString(8)
-		rc := &redisv1alpha1.RedisCluster{}
+		rc := &redisv1alpha1.RedisSentinel{}
 		auth := &util.AuthConfig{}
 
 		ginkgo.BeforeEach(func() {
-			rc = createPvcRedisCluster(name)
+			rc = createPvcRedisSentinel(name)
 			auth = &util.AuthConfig{Password: rc.Spec.Password}
 			wirteToMaster(rc, auth)
 		})
@@ -282,7 +282,7 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
 				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
-				f.WaitRedisclusterHealthy(rc.Name, waitTime, defaultTimeout)
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -294,7 +294,7 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 				f.Logf("delete statefulSet %s %s", rc.Namespace, util.GetRedisName(rc))
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, util.GetRedisName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisclusterHealthy(rc.Name, waitTime, defaultTimeout)
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -305,10 +305,10 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 			ginkgo.BeforeEach(func() {
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, util.GetSentinelName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisclusterHealthy(rc.Name, waitTime, defaultTimeout)
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.AfterEach(func() {
-				f.DeleteRedisCluster(rc.Name)
+				f.DeleteRedisSentinel(rc.Name)
 				f.UtilClient.Delete(context.TODO(), rc.Spec.Storage.PersistentVolumeClaim)
 			})
 			ginkgo.It("start check", func() {
@@ -318,8 +318,8 @@ var _ = ginkgo.Describe("RedisCluster", func() {
 	})
 })
 
-func check(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
-	//f.Logf("check RedisCluster spec: %+v", rc)
+func check(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) {
+	//f.Logf("check RedisSentinel spec: %+v", rc)
 	ginkgo.By("wait sentinel status ok", func() {
 		err := waitAllSentinelReady(rc)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -330,28 +330,28 @@ func check(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	})
 
-	//ginkgo.By("should a RedisCluster has only one master", func() {
+	//ginkgo.By("should a RedisSentinel has only one master", func() {
 	//	checkMaster(rc, auth)
 	//})
 
-	ginkgo.By("should a RedisCluster's SENTINEL monitored the same redis master", func() {
+	ginkgo.By("should a RedisSentinel's SENTINEL monitored the same redis master", func() {
 		checkSentinelMonitor(rc, auth)
 	})
 
-	ginkgo.By("should a RedisCluster can synchronize the data with the master", func() {
+	ginkgo.By("should a RedisSentinel can synchronize the data with the master", func() {
 		readFromSlave(rc, auth)
 	})
 
-	ginkgo.By("should can set custom redis config.yaml to the RedisCluster", func() {
+	ginkgo.By("should can set custom redis config.yaml to the RedisSentinel", func() {
 		checkRedisConfig(rc, auth)
 	})
 }
 
-func checkMaster(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
+func checkMaster(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) {
 	masters := getRedisMasters(util.GetRedisName(rc), auth)
 	count := len(masters)
 	gomega.Expect(count).To(gomega.Equal(1))
-	allNodes := getRedisClusterNodeIPs(util.GetRedisName(rc))
+	allNodes := getRedisSentinelNodeIPs(util.GetRedisName(rc))
 	for _, node := range allNodes {
 		master, err := f.RedisClient.GetSlaveMasterIP(node, auth)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -363,7 +363,7 @@ func checkMaster(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
 	}
 }
 
-func waitReidsMasterReady(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) error {
+func waitReidsMasterReady(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) error {
 	timer := time.NewTimer(defaultTimeout)
 	defer timer.Stop()
 	for {
@@ -374,7 +374,7 @@ func waitReidsMasterReady(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig)
 			masters := getRedisMasters(util.GetRedisName(rc), auth)
 			f.Logf("wait master num == 1, current: %d", len(masters))
 			if len(masters) == 1 {
-				allNodes := getRedisClusterNodeIPs(util.GetRedisName(rc))
+				allNodes := getRedisSentinelNodeIPs(util.GetRedisName(rc))
 				eqnums := 0
 				for _, node := range allNodes {
 					master, err := f.RedisClient.GetSlaveMasterIP(node, auth)
@@ -398,9 +398,9 @@ func waitReidsMasterReady(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig)
 	}
 }
 
-func checkSentinelMonitor(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
+func checkSentinelMonitor(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) {
 	master := getRedisMaster(util.GetRedisName(rc), auth)
-	sentinelIPs := getRedisClusterSentinelIPs(util.GetSentinelName(rc))
+	sentinelIPs := getRedisSentinelSentinelIPs(util.GetSentinelName(rc))
 	for _, sentinel := range sentinelIPs {
 		monitored, err := f.RedisClient.GetSentinelMonitor(sentinel, auth)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -409,14 +409,14 @@ func checkSentinelMonitor(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig)
 	}
 }
 
-func waitAllSentinelReady(rc *redisv1alpha1.RedisCluster) error {
-	redisIPs := getRedisClusterNodeIPs(util.GetRedisName(rc))
+func waitAllSentinelReady(rc *redisv1alpha1.RedisSentinel) error {
+	redisIPs := getRedisSentinelNodeIPs(util.GetRedisName(rc))
 	redisIPMap := make(map[string]string)
 	for _, value := range redisIPs {
 		redisIPMap[value] = ""
 	}
 
-	sentinelIPs := getRedisClusterSentinelIPs(util.GetSentinelName(rc))
+	sentinelIPs := getRedisSentinelSentinelIPs(util.GetSentinelName(rc))
 	for _, sentinel := range sentinelIPs {
 		if err := waitSentinelReady(sentinel, int(rc.Spec.Size-1), redisIPMap); err != nil {
 			return err
@@ -452,38 +452,38 @@ func waitSentinelReady(addr string, expect int, redisIps map[string]string) erro
 	}
 }
 
-func createBasicRedisCluster(name string) *redisv1alpha1.RedisCluster {
-	ginkgo.By(fmt.Sprintf("creating basic RedisCluster %s", name))
-	spec := newRedisClusterSpec(name)
-	return f.CreateRedisClusterAndWaitHealthy(spec, defaultTimeout)
+func createBasicRedisSentinel(name string) *redisv1alpha1.RedisSentinel {
+	ginkgo.By(fmt.Sprintf("creating basic RedisSentinel %s", name))
+	spec := newRedisSentinelSpec(name)
+	return f.CreateRedisSentinelAndWaitHealthy(spec, defaultTimeout)
 }
 
-func createBasicRedisVersion3Cluster(name string) *redisv1alpha1.RedisCluster {
+func createBasicRedisVersion3Cluster(name string) *redisv1alpha1.RedisSentinel {
 	ginkgo.By(fmt.Sprintf("creating basic RedisVersion3Cluster %s", name))
-	spec := newRedisClusterSpec(name)
+	spec := newRedisSentinelSpec(name)
 	spec.Spec.Image = redis3
-	return f.CreateRedisClusterAndWaitHealthy(spec, defaultTimeout)
+	return f.CreateRedisSentinelAndWaitHealthy(spec, defaultTimeout)
 }
 
-func createBasicRedisVersion4Cluster(name string) *redisv1alpha1.RedisCluster {
+func createBasicRedisVersion4Cluster(name string) *redisv1alpha1.RedisSentinel {
 	ginkgo.By(fmt.Sprintf("creating basic RedisVersion4Cluster %s", name))
-	spec := newRedisClusterSpec(name)
+	spec := newRedisSentinelSpec(name)
 	spec.Spec.Image = redis4
-	return f.CreateRedisClusterAndWaitHealthy(spec, defaultTimeout)
+	return f.CreateRedisSentinelAndWaitHealthy(spec, defaultTimeout)
 }
 
-func createPasswdRedisCluster(name string) *redisv1alpha1.RedisCluster {
-	ginkgo.By(fmt.Sprintf("creating passwd RedisCluster %s", name))
-	spec := newRedisClusterSpec(name)
+func createPasswdRedisSentinel(name string) *redisv1alpha1.RedisSentinel {
+	ginkgo.By(fmt.Sprintf("creating passwd RedisSentinel %s", name))
+	spec := newRedisSentinelSpec(name)
 	spec.Spec.Password = "123123"
-	return f.CreateRedisClusterAndWaitHealthy(spec, defaultTimeout)
+	return f.CreateRedisSentinelAndWaitHealthy(spec, defaultTimeout)
 }
 
-func createPvcRedisCluster(name string) *redisv1alpha1.RedisCluster {
-	ginkgo.By(fmt.Sprintf("creating pvc RedisCluster %s", name))
+func createPvcRedisSentinel(name string) *redisv1alpha1.RedisSentinel {
+	ginkgo.By(fmt.Sprintf("creating pvc RedisSentinel %s", name))
 	storageClassName := os.Getenv("STORAGECLASSNAME")
 	volumeMode := v1.PersistentVolumeFilesystem
-	spec := newRedisClusterSpec(name)
+	spec := newRedisSentinelSpec(name)
 	spec.Spec.Storage = redisv1alpha1.RedisStorage{
 		KeepAfterDeletion: true,
 		PersistentVolumeClaim: &v1.PersistentVolumeClaim{
@@ -502,11 +502,11 @@ func createPvcRedisCluster(name string) *redisv1alpha1.RedisCluster {
 			},
 		},
 	}
-	return f.CreateRedisClusterAndWaitHealthy(spec, defaultTimeout)
+	return f.CreateRedisSentinelAndWaitHealthy(spec, defaultTimeout)
 }
 
-func newRedisClusterSpec(name string) *redisv1alpha1.RedisCluster {
-	return &redisv1alpha1.RedisCluster{
+func newRedisSentinelSpec(name string) *redisv1alpha1.RedisSentinel {
+	return &redisv1alpha1.RedisSentinel{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: f.Namespace(),
@@ -514,7 +514,7 @@ func newRedisClusterSpec(name string) *redisv1alpha1.RedisCluster {
 				"lovelycat.io/scope": "cluster-scoped",
 			},
 		},
-		Spec: redisv1alpha1.RedisClusterSpec{
+		Spec: redisv1alpha1.RedisSentinelSpec{
 			Size:  3,
 			Image: redis5,
 			Config: map[string]string{
@@ -525,13 +525,13 @@ func newRedisClusterSpec(name string) *redisv1alpha1.RedisCluster {
 	}
 }
 
-func updateRedisClusterAndWaitHealthy(rc *redisv1alpha1.RedisCluster) {
-	f.UpdateRedisCluster(rc)
-	_, err := f.WaitRedisclusterHealthy(rc.Name, 5*time.Second, defaultTimeout)
+func updateRedisSentinelAndWaitHealthy(rc *redisv1alpha1.RedisSentinel) {
+	f.UpdateRedisSentinel(rc)
+	_, err := f.WaitRedisSentinelHealthy(rc.Name, 5*time.Second, defaultTimeout)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 }
 
-func getRedisClusterNodeIPs(statefulSetName string) []string {
+func getRedisSentinelNodeIPs(statefulSetName string) []string {
 	podIPs := []string{}
 	podList, err := f.K8sService.GetStatefulSetPods(f.Namespace(), statefulSetName)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -544,7 +544,7 @@ func getRedisClusterNodeIPs(statefulSetName string) []string {
 	return podIPs
 }
 
-func getRedisClusterSentinelIPs(name string) []string {
+func getRedisSentinelSentinelIPs(name string) []string {
 	podIPs := []string{}
 	podList, err := f.K8sService.GetStatefulSetPods(f.Namespace(), name)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -559,7 +559,7 @@ func getRedisClusterSentinelIPs(name string) []string {
 
 func getRedisMasters(statefulSetName string, auth *util.AuthConfig) []string {
 	masters := []string{}
-	podIPs := getRedisClusterNodeIPs(statefulSetName)
+	podIPs := getRedisSentinelNodeIPs(statefulSetName)
 	for _, ip := range podIPs {
 		is, err := f.RedisClient.IsMaster(ip, auth)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -571,7 +571,7 @@ func getRedisMasters(statefulSetName string, auth *util.AuthConfig) []string {
 }
 
 func getRedisMaster(statefulSetName string, auth *util.AuthConfig) string {
-	podIPs := getRedisClusterNodeIPs(statefulSetName)
+	podIPs := getRedisSentinelNodeIPs(statefulSetName)
 	for _, ip := range podIPs {
 		is, err := f.RedisClient.IsMaster(ip, auth)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -606,8 +606,8 @@ func getRedisSlavesBySentinel(addr string) []string {
 	return slaves
 }
 
-func checkRedisConfig(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
-	nodes := getRedisClusterNodeIPs(util.GetRedisName(rc))
+func checkRedisConfig(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) {
+	nodes := getRedisSentinelNodeIPs(util.GetRedisName(rc))
 	for _, nodeIP := range nodes {
 		client := newRedisClient(nodeIP, "6379", auth)
 		configs, err := f.RedisClient.GetAllRedisConfig(client)
@@ -636,7 +636,7 @@ func newRedisClient(addr, port string, auth *util.AuthConfig) *redis.Client {
 	})
 }
 
-func wirteToMaster(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
+func wirteToMaster(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) {
 	ginkgo.By("write some key to redis")
 
 	sentinelSvc, err := f.K8sService.GetService(f.Namespace(), util.GetSentinelName(rc))
@@ -647,7 +647,7 @@ func wirteToMaster(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
 	writeKey(masterClient)
 }
 
-func readFromSlave(rc *redisv1alpha1.RedisCluster, auth *util.AuthConfig) {
+func readFromSlave(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) {
 	ginkgo.By("read key from redis")
 	sentinelSvc, err := f.K8sService.GetService(f.Namespace(), util.GetSentinelName(rc))
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())

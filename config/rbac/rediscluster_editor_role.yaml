@@ -1,13 +1,13 @@
-# permissions for end users to edit redisclusters.
+# permissions for end users to edit RedisSentinels.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: rediscluster-editor-role
+  name: RedisSentinel-editor-role
 rules:
 - apiGroups:
   - redis.lovelycat.io
   resources:
-  - redisclusters
+  - RedisSentinels
   verbs:
   - create
   - delete
@@ -19,6 +19,6 @@ rules:
 - apiGroups:
   - redis.lovelycat.io
   resources:
-  - redisclusters/status
+  - RedisSentinels/status
   verbs:
   - get

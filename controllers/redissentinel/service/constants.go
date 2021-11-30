@@ -13,7 +13,6 @@ package service
 //
 //	redisPasswordEnv = "REDIS_PASSWORD"
 //
-//	redisConfigurationVolumeName         = "redis-conf"
 //	redisShutdownConfigurationVolumeName = "redis-shutdown-config"
 //	redisStorageVolumeName               = "redis-data"
 //

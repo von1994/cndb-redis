@@ -19,6 +19,6 @@ if [[ -z ${E2E_GINKGO_SKIP} ]]; then
 fi
 
 echo "run e2e tests..."
-echo "cd ${GOPATH}/src/${REPO_PATH} && ginkgo -v --skip=$E2E_GINKGO_SKIP test/e2e/rediscluster"
-cd ${GOPATH}/src/${REPO_PATH} && ginkgo -v --skip=${E2E_GINKGO_SKIP} test/e2e/rediscluster
+echo "cd ${GOPATH}/src/${REPO_PATH} && ginkgo -v --skip=$E2E_GINKGO_SKIP test/e2e/RedisSentinel"
+cd ${GOPATH}/src/${REPO_PATH} && ginkgo -v --skip=${E2E_GINKGO_SKIP} test/e2e/RedisSentinel
 

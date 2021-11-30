@@ -53,6 +53,11 @@ type RedisStandaloneSpec struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
 // +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="SIZE",type=integer,JSONPath=`.spec.size`
+// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="HEALTHY",type=string,JSONPath=`.status.conditions[?(@.type=="Healthy")].status`
+// +kubebuilder:printcolumn:name="MASTER-IP",type=string,JSONPath=".status.masterIP",priority=10
+// +kubebuilder:printcolumn:name="SENTINEL-IP",type=string,JSONPath=".status.sentinelIP",priority=10
 // +kubebuilder:resource:scope=Namespaced,shortName={redisstandalone},singular=redisstandalone
 // +kubebuilder:subresource:status
 type RedisStandalone struct {

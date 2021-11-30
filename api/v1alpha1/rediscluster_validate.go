@@ -14,7 +14,7 @@ var (
 )
 
 // Validate set the values by default if not defined and checks if the values given are valid
-func (r *RedisCluster) Validate() (bool, error) {
+func (r *RedisSentinel) Validate() (bool, error) {
 	rCopy := r.DeepCopy()
 	if len(r.Name) > maxNameLength {
 		return false, fmt.Errorf("name length can't be higher than %d", maxNameLength)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/pflag"
+	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
 	"github.com/von1994/cndb-redis/pkg/metrics"
 	"github.com/von1994/cndb-redis/pkg/util"
 )
@@ -20,8 +21,27 @@ tcp-keepalive 300
 daemonize no
 supervised no
 pidfile /var/run/redis.pid`
-	RedisClusterControllerName    = "redis-cluster-controller"
+	RedisSentinelControllerName    = "redis-sentinel-controller"
 	RedsiStandaloneControllerName = "redis-standalone-controller"
+
+	ExporterPort                 = 9121
+	ExporterPortName             = "http-metrics"
+	ExporterContainerName        = "redis-exporter"
+	ExporterDefaultRequestCPU    = "50m"
+	ExporterDefaultLimitCPU      = "100m"
+	ExporterDefaultRequestMemory = "50Mi"
+	ExporterDefaultLimitMemory   = "200Mi"
+
+	RedisPasswordEnv = "REDIS_PASSWORD"
+
+	RedisConfigurationVolumeName         = "redis-conf"
+	RedisShutdownConfigurationVolumeName = "redis-shutdown-config"
+	RedisStorageVolumeName               = "redis-data"
+
+	GraceTime = 30
+
+	UseLabelKey       = "used-for"
+	MonitorLabelValue = "monitor"
 )
 
 var (
@@ -36,6 +56,11 @@ var (
 	MaxConcurrentReconciles int
 	// ReconcileTime is the delay between reconciliations. Defaults to 60s.
 	ReconcileTime int
+
+	// DefaultLabels 增加operator专用标签
+	DefaultLabels = map[string]string{
+		redisv1alpha1.LabelManagedByKey: redisv1alpha1.OperatorName,
+	}
 )
 
 func init() {

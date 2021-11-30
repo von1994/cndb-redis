@@ -1,4 +1,4 @@
-package rediscluster_test
+package RedisSentinel_test
 
 import (
 	"testing"
@@ -11,9 +11,9 @@ import (
 
 var f *e2e.Framework
 
-func TestRediscluster(t *testing.T) {
+func TestRedisSentinel(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Rediscluster Suite")
+	ginkgo.RunSpecs(t, "RedisSentinel Suite")
 }
 
 var _ = ginkgo.BeforeSuite(func() {

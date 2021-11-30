@@ -103,7 +103,7 @@ rules:
   - apiGroups:
       - redis.lovelycat.io
     resources:
-      - redisclusters
+      - RedisSentinels
     verbs:
       - create
       - delete
@@ -115,13 +115,13 @@ rules:
   - apiGroups:
       - redis.lovelycat.io
     resources:
-      - redisclusters/finalizers
+      - RedisSentinels/finalizers
     verbs:
       - update
   - apiGroups:
       - redis.lovelycat.io
     resources:
-      - redisclusters/status
+      - RedisSentinels/status
     verbs:
       - get
       - patch

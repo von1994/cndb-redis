@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: redisclusters.redis.lovelycat.io
+  name: RedisSentinels.redis.lovelycat.io
 spec:
   group: redis.lovelycat.io
   names:
-    kind: RedisCluster
-    listKind: RedisClusterList
-    plural: redisclusters
-    singular: rediscluster
+    kind: RedisSentinel
+    listKind: RedisSentinelList
+    plural: RedisSentinels
+    singular: RedisSentinel
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: RedisCluster is the Schema for the redisclusters API
+        description: RedisSentinel is the Schema for the RedisSentinels API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: RedisClusterSpec defines the desired state of RedisCluster
+            description: RedisSentinelSpec defines the desired state of RedisSentinel
             properties:
               affinity:
                 description: Affinity is a group of affinity scheduling rules.
@@ -2013,7 +2013,7 @@ spec:
                 type: array
             type: object
           status:
-            description: RedisClusterStatus defines the observed state of RedisCluster
+            description: RedisSentinelStatus defines the observed state of RedisSentinel
             properties:
               conditions:
                 description: 'Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html'

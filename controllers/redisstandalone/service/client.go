@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/go-logr/logr"
 	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
+	"github.com/von1994/cndb-redis/controllers/common"
 	"github.com/von1994/cndb-redis/controllers/redisstandalone"
 	"github.com/von1994/cndb-redis/pkg/client/k8s"
 	appsv1 "k8s.io/api/apps/v1"
@@ -14,7 +15,9 @@ import (
 type RedisStandaloneClient interface {
 	EnsureRedisStatefulset(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisHeadlessService(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error
+	EnsureRedisMonitorService(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisService(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error
+	EnsureRedisShutdownConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 }
 
@@ -52,14 +55,14 @@ func shouldUpdateRedis(expectResource, containterResource corev1.ResourceRequire
 func exporterChanged(rc *redisv1alpha1.RedisStandalone, sts *appsv1.StatefulSet) bool {
 	if rc.Spec.Exporter.Enabled {
 		for _, container := range sts.Spec.Template.Spec.Containers {
-			if container.Name == exporterContainerName {
+			if container.Name == common.ExporterContainerName {
 				return false
 			}
 		}
 		return true
 	} else {
 		for _, container := range sts.Spec.Template.Spec.Containers {
-			if container.Name == exporterContainerName {
+			if container.Name == common.ExporterContainerName {
 				return true
 			}
 		}
@@ -95,6 +98,23 @@ func (r *RedisStandaloneKubeClient) EnsureRedisService(rc *redisv1alpha1.RedisSt
 func (r *RedisStandaloneKubeClient) EnsureRedisHeadlessService(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
 	svc := generateHeadlessRedisService(rc, labels, ownerRefs)
 	return r.K8SService.CreateIfNotExistsService(rc.Namespace, svc)
+}
+
+func (r *RedisStandaloneKubeClient) EnsureRedisMonitorService(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
+	svc := generateRedisMonitorService(rc, labels, ownerRefs)
+	return r.K8SService.CreateIfNotExistsService(rc.Namespace, svc)
+}
+
+func (r *RedisStandaloneKubeClient) EnsureRedisShutdownConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
+	if rc.Spec.ShutdownConfigMap != "" {
+		if _, err := r.K8SService.GetConfigMap(rc.Namespace, rc.Spec.ShutdownConfigMap); err != nil {
+			return err
+		}
+	} else {
+		cm := generateRedisShutdownConfigMap(rc, labels, ownerRefs)
+		return r.K8SService.CreateIfNotExistsConfigMap(rc.Namespace, cm)
+	}
+	return nil
 }
 
 func (r *RedisStandaloneKubeClient) EnsureRedisConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error {

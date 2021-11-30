@@ -19,7 +19,7 @@ package k8s_test
 //
 //var (
 //	configMapsGroup = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "configmaps"}
-//	log             = logf.Log.WithName("controller_rediscluster")
+//	log             = logf.Log.WithName("controller_RedisSentinel")
 //)
 //
 //func newConfigMapUpdateAction(ns string, configMap *corev1.ConfigMap) kubetesting.UpdateActionImpl {
