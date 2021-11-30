@@ -6,16 +6,16 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: RedisSentinels.redis.lovelycat.io
+  name: redissentinels.redis.lovelycat.io
 spec:
   group: redis.lovelycat.io
   names:
     kind: RedisSentinel
     listKind: RedisSentinelList
-    plural: RedisSentinels
+    plural: redissentinels
     shortNames:
-    - RedisSentinel
-    singular: RedisSentinel
+    - redissentinel
+    singular: redissentinel
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -1800,6 +1800,10 @@ spec:
                       metadata:
                         description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata'
                         type: object
+                        properties:
+                          name:
+                            description: "manual add"
+                            type: string
                       spec:
                         description: 'Spec defines the desired characteristics of
                           a volume requested by a pod author. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims'
