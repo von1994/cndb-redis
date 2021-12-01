@@ -219,8 +219,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
 				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
-				_, err := f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -232,8 +231,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 				f.Logf("delete statefulSet %s %s", rc.Namespace, redissentinel.GetRedisName(rc))
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetRedisName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
 				ginkgo.By("should a RedisSentinel has only one master", func() {
@@ -254,8 +252,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 			ginkgo.BeforeEach(func() {
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetSentinelName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.AfterEach(func() {
 				f.DeleteRedisSentinel(rc.Name)
@@ -286,8 +283,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
 				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
-				_, err := f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -299,8 +295,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 				f.Logf("delete statefulSet %s %s", rc.Namespace, redissentinel.GetRedisName(rc))
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetRedisName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -311,13 +306,11 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 			ginkgo.BeforeEach(func() {
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetSentinelName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.AfterEach(func() {
 				f.DeleteRedisSentinel(rc.Name)
-				err := f.UtilClient.Delete(context.TODO(), rc.Spec.Storage.PersistentVolumeClaim)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				f.UtilClient.Delete(context.TODO(), rc.Spec.Storage.PersistentVolumeClaim)
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
