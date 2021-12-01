@@ -218,7 +218,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
-				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
+				f.DeletePod(fmt.Sprintf("redis-%s-%s-%d",redissentinel.RedisName, name, 0))
 				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
@@ -282,7 +282,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
-				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
+				f.DeletePod(fmt.Sprintf("redis-%s-%s-%d",redissentinel.RedisName, name, 0))
 				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
