@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: harbor.enmotech.com/cndb-redis/controller
-  newTag: e0f8a7e
+  newTag: 913d645

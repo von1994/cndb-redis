@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	defaultTimeout = 30 * time.Minute
+	defaultTimeout = 40 * time.Minute
 	waitTime       = 90 * time.Second
 )
 
@@ -219,7 +219,8 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
 				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
-				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				_, err := f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -231,7 +232,8 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 				f.Logf("delete statefulSet %s %s", rc.Namespace, redissentinel.GetRedisName(rc))
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetRedisName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 			ginkgo.It("start check", func() {
 				ginkgo.By("should a RedisSentinel has only one master", func() {
@@ -252,7 +254,8 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 			ginkgo.BeforeEach(func() {
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetSentinelName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 			ginkgo.AfterEach(func() {
 				f.DeleteRedisSentinel(rc.Name)
@@ -283,7 +286,8 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
 				f.DeletePod(fmt.Sprintf("redis-cluster-%s-%d", name, 0))
-				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				_, err := f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -295,7 +299,8 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 				f.Logf("delete statefulSet %s %s", rc.Namespace, redissentinel.GetRedisName(rc))
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetRedisName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -306,11 +311,13 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 			ginkgo.BeforeEach(func() {
 				err := f.K8sService.DeleteStatefulSet(rc.Namespace, redissentinel.GetSentinelName(rc))
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				_, err = f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 			ginkgo.AfterEach(func() {
 				f.DeleteRedisSentinel(rc.Name)
-				f.UtilClient.Delete(context.TODO(), rc.Spec.Storage.PersistentVolumeClaim)
+				err := f.UtilClient.Delete(context.TODO(), rc.Spec.Storage.PersistentVolumeClaim)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 			ginkgo.It("start check", func() {
 				check(rc, auth)
@@ -533,7 +540,7 @@ func updateRedisSentinelAndWaitHealthy(rc *redisv1alpha1.RedisSentinel) {
 }
 
 func getRedisSentinelNodeIPs(statefulSetName string) []string {
-	podIPs := []string{}
+	var podIPs []string
 	podList, err := f.K8sService.GetStatefulSetPods(f.Namespace(), statefulSetName)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	for _, pod := range podList.Items {
@@ -546,7 +553,7 @@ func getRedisSentinelNodeIPs(statefulSetName string) []string {
 }
 
 func getRedisSentinelSentinelIPs(name string) []string {
-	podIPs := []string{}
+	var podIPs []string
 	podList, err := f.K8sService.GetStatefulSetPods(f.Namespace(), name)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	for _, pod := range podList.Items {
@@ -559,7 +566,7 @@ func getRedisSentinelSentinelIPs(name string) []string {
 }
 
 func getRedisMasters(statefulSetName string, auth *util.AuthConfig) []string {
-	masters := []string{}
+	var masters []string
 	podIPs := getRedisSentinelNodeIPs(statefulSetName)
 	for _, ip := range podIPs {
 		is, err := f.RedisClient.IsMaster(ip, auth)
@@ -620,13 +627,13 @@ func checkRedisConfig(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) {
 	}
 }
 
-func newFailoverClient(sentinels []string, auth *util.AuthConfig) *redis.Client {
-	return redis.NewFailoverClient(&redis.FailoverOptions{
-		MasterName:    "mymaster",
-		SentinelAddrs: sentinels,
-		Password:      auth.Password,
-	})
-}
+//func newFailoverClient(sentinels []string, auth *util.AuthConfig) *redis.Client {
+//	return redis.NewFailoverClient(&redis.FailoverOptions{
+//		MasterName:    "mymaster",
+//		SentinelAddrs: sentinels,
+//		Password:      auth.Password,
+//	})
+//}
 
 func newRedisClient(addr, port string, auth *util.AuthConfig) *redis.Client {
 	f.Logf(fmt.Sprintf("new redis client addr: %s, port:%s, passwd:%s", addr, port, auth.Password))

@@ -15,8 +15,8 @@ spec:
               value: topolvm-provisioner
             - name: E2E_GINKGO_SKIP
               value: ""
-            - name: E2E_REDIS_MODE
-              value: "standalone"
+            - name: TEST_REDIS_MODE
+              value: "sentinel"
       restartPolicy: Never
       serviceAccountName: cndb-redis-e2e
   backoffLimit: 1

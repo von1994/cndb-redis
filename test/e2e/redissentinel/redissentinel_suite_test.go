@@ -17,7 +17,7 @@ func TestRedisSentinel(t *testing.T) {
 }
 
 var _ = ginkgo.BeforeSuite(func() {
-	f = e2e.NewFramework("test")
+	f = e2e.NewFramework("sentinel-test")
 	f.BeforeEach()
 })
 
