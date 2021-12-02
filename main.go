@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/von1994/cndb-redis/controllers"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -32,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	redisv1alpha1 "github.com/von1994/cndb-redis/api/v1alpha1"
-	"github.com/von1994/cndb-redis/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -52,7 +52,7 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
-	flag.StringVar(&metricsAddr, "metrics-bind-address", "0.0.0.0:8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
@@ -78,13 +78,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// RedisCluster Reconciler
-	if err = (controllers.NewReconciler(mgr)).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "RedisCluster")
+	// RedisSentinel Reconciler
+	if err = (controllers.NewRedisSentinelReconciler(mgr)).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create redis-cluster controller", "controller", "RedisSentinel")
 		os.Exit(1)
 	}
 
-	//+kubebuilder:scaffold:builder
+	// RedisStandalone Reconciler
+	if err = (controllers.NewRedisStandaloneReconciler(mgr)).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create redis-standalone controller", "controller", "RedisStandalone")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

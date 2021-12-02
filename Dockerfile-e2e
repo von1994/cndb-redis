@@ -14,6 +14,7 @@ ARG REPO_PATH=github.com/von1994/$PROJECT_NAME
 RUN mkdir -p /go/src/${REPO_PATH}
 COPY api/ /go/src/${REPO_PATH}/api/
 COPY pkg/ /go/src/${REPO_PATH}/pkg/
+COPY controllers/ /go/src/${REPO_PATH}/controllers/
 COPY test/ /go/src/${REPO_PATH}/test/
 COPY vendor/ /go/src/${REPO_PATH}/vendor/
 COPY hack/ /go/src/${REPO_PATH}/hack/

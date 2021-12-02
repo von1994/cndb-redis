@@ -17,8 +17,8 @@ type Event interface {
 	SlaveRemove(object runtime.Object, message string)
 	// CreateCluster event ClusterCreating
 	CreateCluster(object runtime.Object)
-	// UpdateClusterStatus event ClusterUpdating
-	UpdateClusterStatus(object runtime.Object, message string)
+	// UpdateSentinelStatus event ClusterUpdating
+	UpdateSentinelStatus(object runtime.Object, message string)
 	// UpgradedCluster event ClusterUpgrading
 	UpgradedCluster(object runtime.Object, message string)
 	// EnsureCluster event Ensure
@@ -60,8 +60,8 @@ func (e *EventOption) CreateCluster(object runtime.Object) {
 	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionCreating), "Bootstrap redis cluster")
 }
 
-// UpdateClusterStatus implement the Event.Interface
-func (e *EventOption) UpdateClusterStatus(object runtime.Object, message string) {
+// UpdateSentinelStatus implement the Event.Interface
+func (e *EventOption) UpdateSentinelStatus(object runtime.Object, message string) {
 	e.eventsCli.Event(object, v1.EventTypeNormal, string(redisv1alpha1.ClusterConditionUpdating), message)
 }
 

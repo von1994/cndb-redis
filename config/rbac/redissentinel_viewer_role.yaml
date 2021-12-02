@@ -1,0 +1,20 @@
+# permissions for end users to view RedisSentinels.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: redissentinel-viewer-role
+rules:
+- apiGroups:
+  - redis.lovelycat.io
+  resources:
+  - redissentinels
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - redis.lovelycat.io
+  resources:
+  - redissentinels/status
+  verbs:
+  - get
