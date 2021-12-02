@@ -22,8 +22,8 @@ import (
 )
 
 var (
-	defaultTimeout = 40 * time.Minute
-	waitTime       = 90 * time.Second
+	defaultTimeout = 20 * time.Minute
+	waitTime       = 60 * time.Second
 )
 
 const (
@@ -52,7 +52,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when update the redis cluster size", func() {
 			ginkgo.BeforeEach(func() {
-				rc.Spec.Size += 1
+				rc.Spec.Size++
 				updateRedisSentinelAndWaitHealthy(rc)
 			})
 
@@ -110,7 +110,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when update the redis cluster size and config.yaml", func() {
 			ginkgo.BeforeEach(func() {
-				rc.Spec.Size += 1
+				rc.Spec.Size++
 				rc.Spec.Config = map[string]string{
 					"hz":         "13",
 					"maxclients": "103",
@@ -146,7 +146,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when update the redis cluster size and config.yaml", func() {
 			ginkgo.BeforeEach(func() {
-				rc.Spec.Size += 1
+				rc.Spec.Size++
 				rc.Spec.Config = map[string]string{
 					"hz":         "13",
 					"maxclients": "103",
@@ -182,7 +182,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when update the redis cluster size and config.yaml", func() {
 			ginkgo.BeforeEach(func() {
-				rc.Spec.Size += 1
+				rc.Spec.Size++
 				rc.Spec.Config = map[string]string{
 					"hz":         "13",
 					"maxclients": "103",
@@ -218,7 +218,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
-				f.DeletePod(fmt.Sprintf("redis-%s-%s-%d",redissentinel.RedisName, name, 0))
+				f.DeletePod(fmt.Sprintf("%s-%d", redissentinel.GetRedisName(rc), 0))
 				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
@@ -282,7 +282,7 @@ var _ = ginkgo.Describe("RedisSentinel", func() {
 
 		ginkgo.Context("when delete one of redis cluster pod", func() {
 			ginkgo.BeforeEach(func() {
-				f.DeletePod(fmt.Sprintf("redis-%s-%s-%d",redissentinel.RedisName, name, 0))
+				f.DeletePod(fmt.Sprintf("%s-%d", redissentinel.GetRedisName(rc), 0))
 				f.WaitRedisSentinelHealthy(rc.Name, waitTime, defaultTimeout)
 			})
 			ginkgo.It("start check", func() {
