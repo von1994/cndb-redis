@@ -31,6 +31,8 @@ type RedisSentinelClient interface {
 	EnsureNotPresentRedisService(RedisSentinel *redisv1alpha1.RedisSentinel) error
 }
 
+var _ RedisSentinelClient = &RedisSentinelKubeClient{}
+
 // RedisSentinelKubeClient implements the required methods to talk with kubernetes
 type RedisSentinelKubeClient struct {
 	K8SService k8s.Services
@@ -71,7 +73,7 @@ func (r *RedisSentinelKubeClient) EnsureSentinelConfigMap(rc *redisv1alpha1.Redi
 	return r.K8SService.CreateIfNotExistsConfigMap(rc.Namespace, cm)
 }
 
-// EnsureSentinelConfigMap makes sure the sentinel configmap exists
+// EnsureSentinelProbeConfigMap makes sure the sentinel configmap exists
 func (r *RedisSentinelKubeClient) EnsureSentinelProbeConfigMap(rc *redisv1alpha1.RedisSentinel, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
 	cm := generateSentinelReadinessProbeConfigMap(rc, labels, ownerRefs)
 	return r.K8SService.CreateIfNotExistsConfigMap(rc.Namespace, cm)
@@ -187,7 +189,7 @@ func (r *RedisSentinelKubeClient) EnsureRedisService(rc *redisv1alpha1.RedisSent
 	return r.K8SService.CreateIfNotExistsService(rc.Namespace, svc)
 }
 
-// EnsureRedisService makes sure the redis statefulset exists
+// EnsureRedisMonitorService makes sure the redis statefulset exists
 func (r *RedisSentinelKubeClient) EnsureRedisMonitorService(rc *redisv1alpha1.RedisSentinel, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
 	svc := generateRedisMonitorService(rc, labels, ownerRefs)
 	return r.K8SService.CreateIfNotExistsService(rc.Namespace, svc)

@@ -51,6 +51,7 @@ var (
 	// ErrNeedRequeueImmediately 表示需要立即重试并且不抛出错误
 	ErrNeedRequeueImmediately = errors.New(NeedRequeueImmediatelyMsg)
 
+	// ControllerFlagSet 设置controller flagset
 	ControllerFlagSet *pflag.FlagSet
 	// MaxConcurrentReconciles is the maximum number of concurrent Reconciles which can be run. Defaults to 4.
 	MaxConcurrentReconciles int
@@ -61,6 +62,8 @@ var (
 	DefaultLabels = map[string]string{
 		redisv1alpha1.LabelManagedByKey: redisv1alpha1.OperatorName,
 	}
+
+	// ParseConfigMap 特殊处理的redis设置
 	ParseConfigMap = map[string]int8{
 		"maxmemory":                  0,
 		"proto-max-bulk-len":         0,

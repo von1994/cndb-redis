@@ -19,7 +19,7 @@ import (
 type RedisStandaloneCheck interface {
 	CheckRedisNumber(rc *redisv1alpha1.RedisStandalone) error
 	CheckRedisConfig(rc *redisv1alpha1.RedisStandalone, addr string, auth *util.AuthConfig) error
-	GetRedisesIPs(rc *redisv1alpha1.RedisStandalone, auth *util.AuthConfig) ([]string, error)
+	GetRedisesIPs(rc *redisv1alpha1.RedisStandalone) ([]string, error)
 }
 
 var _ RedisStandaloneCheck = &RedisStandaloneChecker{}
@@ -40,8 +40,8 @@ func NewRedisStandaloneChecker(k8sService k8s.Services, redisClient redis.Client
 	}
 }
 
-func (r *RedisStandaloneChecker) GetRedisesIPs(rc *redisv1alpha1.RedisStandalone, auth *util.AuthConfig) ([]string, error) {
-	redises := []string{}
+func (r *RedisStandaloneChecker) GetRedisesIPs(rc *redisv1alpha1.RedisStandalone) ([]string, error) {
+	var redises []string
 	rps, err := r.k8sService.GetStatefulSetPods(rc.Namespace, redisstandalone.GetRedisName(rc))
 	if err != nil {
 		return nil, err

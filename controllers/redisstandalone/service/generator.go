@@ -401,8 +401,8 @@ func generateRedisShutdownConfigMap(rc *redisv1alpha1.RedisStandalone, labels ma
 	namespace := rc.Namespace
 
 	labels = util.MergeLabels(labels, generateSelectorLabels(util.RedisRoleName, rc.Name))
-	shutdownContent := fmt.Sprintf(`#!/usr/bin/env sh
-echo "do nothing"`)
+	shutdownContent := `#!/usr/bin/env sh
+	echo "do nothing"`
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{

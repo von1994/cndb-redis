@@ -147,7 +147,7 @@ func (r *StandaloneHandler) getLabels(rc *redisv1alpha1.RedisStandalone) map[str
 }
 
 func (r *StandaloneHandler) setRedisConfig(meta *cache.Meta) error {
-	redises, err := r.rcChecker.GetRedisesIPs(meta.Obj, meta.Auth)
+	redises, err := r.rcChecker.GetRedisesIPs(meta.Obj)
 	if err != nil {
 		return err
 	}
