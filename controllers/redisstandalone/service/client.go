@@ -21,6 +21,8 @@ type RedisStandaloneClient interface {
 	EnsureRedisConfigMap(rc *redisv1alpha1.RedisStandalone, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 }
 
+var _ RedisStandaloneClient = &RedisStandaloneKubeClient{}
+
 type RedisStandaloneKubeClient struct {
 	K8SService k8s.Services
 	logger     logr.Logger

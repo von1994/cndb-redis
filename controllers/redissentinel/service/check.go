@@ -36,6 +36,8 @@ type RedisSentinelCheck interface {
 	CheckRedisConfig(rc *redisv1alpha1.RedisSentinel, addr string, auth *util.AuthConfig) error
 }
 
+var _ RedisSentinelCheck = &RedisSentinelChecker{}
+
 // RedisSentinelChecker is our implementation of RedisSentinelCheck intercace
 type RedisSentinelChecker struct {
 	k8sService  k8s.Services
@@ -194,7 +196,7 @@ func (r *RedisSentinelChecker) GetMasterIP(rc *redisv1alpha1.RedisSentinel, auth
 	if err != nil {
 		return "", err
 	}
-	masters := []string{}
+	var masters []string
 	for _, rip := range rips {
 		master, err := r.redisClient.IsMaster(rip, auth)
 		if err != nil {
@@ -232,7 +234,7 @@ func (r *RedisSentinelChecker) GetNumberMasters(rc *redisv1alpha1.RedisSentinel,
 
 // GetRedisesIPs returns the IPs of the Redis nodes
 func (r *RedisSentinelChecker) GetRedisesIPs(rc *redisv1alpha1.RedisSentinel, auth *util.AuthConfig) ([]string, error) {
-	redises := []string{}
+	var redises []string
 	rps, err := r.k8sService.GetStatefulSetPods(rc.Namespace, redissentinel.GetRedisName(rc))
 	if err != nil {
 		return nil, err
@@ -247,7 +249,7 @@ func (r *RedisSentinelChecker) GetRedisesIPs(rc *redisv1alpha1.RedisSentinel, au
 
 // GetSentinelsIPs returns the IPs of the Sentinel nodes
 func (r *RedisSentinelChecker) GetSentinelsIPs(rc *redisv1alpha1.RedisSentinel) ([]string, error) {
-	sentinels := []string{}
+	var sentinels []string
 	rps, err := r.k8sService.GetStatefulSetPods(rc.Namespace, redissentinel.GetSentinelName(rc))
 	if err != nil {
 		return nil, err

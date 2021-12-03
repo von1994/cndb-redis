@@ -13,6 +13,8 @@ type RedisStandaloneHeal interface {
 	SetRedisCustomConfig(ip string, rc *redisv1alpha1.RedisStandalone, auth *util.AuthConfig) error
 }
 
+var _ RedisStandaloneHeal = &RedisStandaloneHealer{}
+
 // RedisStandaloneHealer is our implementation of RedisSentinelCheck intercace
 type RedisStandaloneHealer struct {
 	k8sService  k8s.Services

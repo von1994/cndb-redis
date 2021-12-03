@@ -512,16 +512,16 @@ func generatePodDisruptionBudget(name string, namespace string, labels map[strin
 	}
 }
 
-func generateResourceList(cpu string, memory string) corev1.ResourceList {
-	resources := corev1.ResourceList{}
-	if cpu != "" {
-		resources[corev1.ResourceCPU], _ = resource.ParseQuantity(cpu)
-	}
-	if memory != "" {
-		resources[corev1.ResourceMemory], _ = resource.ParseQuantity(memory)
-	}
-	return resources
-}
+//func generateResourceList(cpu string, memory string) corev1.ResourceList {
+//	resources := corev1.ResourceList{}
+//	if cpu != "" {
+//		resources[corev1.ResourceCPU], _ = resource.ParseQuantity(cpu)
+//	}
+//	if memory != "" {
+//		resources[corev1.ResourceMemory], _ = resource.ParseQuantity(memory)
+//	}
+//	return resources
+//}
 
 func createRedisExporterContainer(rc *redisv1alpha1.RedisSentinel) corev1.Container {
 	container := corev1.Container{
@@ -565,36 +565,36 @@ func createRedisExporterContainer(rc *redisv1alpha1.RedisSentinel) corev1.Contai
 	return container
 }
 
-func createPodAntiAffinity(hard bool, labels map[string]string) *corev1.PodAntiAffinity {
-	if hard {
-		// Return a HARD anti-affinity (no same pods on one node)
-		return &corev1.PodAntiAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
-				{
-					TopologyKey: util.HostnameTopologyKey,
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: labels,
-					},
-				},
-			},
-		}
-	}
-
-	// Return a SOFT anti-affinity
-	return &corev1.PodAntiAffinity{
-		PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
-			{
-				Weight: 100,
-				PodAffinityTerm: corev1.PodAffinityTerm{
-					TopologyKey: util.HostnameTopologyKey,
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: labels,
-					},
-				},
-			},
-		},
-	}
-}
+//func createPodAntiAffinity(hard bool, labels map[string]string) *corev1.PodAntiAffinity {
+//	if hard {
+//		// Return a HARD anti-affinity (no same pods on one node)
+//		return &corev1.PodAntiAffinity{
+//			RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+//				{
+//					TopologyKey: util.HostnameTopologyKey,
+//					LabelSelector: &metav1.LabelSelector{
+//						MatchLabels: labels,
+//					},
+//				},
+//			},
+//		}
+//	}
+//
+//	// Return a SOFT anti-affinity
+//	return &corev1.PodAntiAffinity{
+//		PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+//			{
+//				Weight: 100,
+//				PodAffinityTerm: corev1.PodAffinityTerm{
+//					TopologyKey: util.HostnameTopologyKey,
+//					LabelSelector: &metav1.LabelSelector{
+//						MatchLabels: labels,
+//					},
+//				},
+//			},
+//		},
+//	}
+//}
 
 func getSecurityContext(secctx *corev1.PodSecurityContext) *corev1.PodSecurityContext {
 	if secctx != nil {
